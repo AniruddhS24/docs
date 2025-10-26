@@ -77,29 +77,59 @@ Once you have a successful session, you can link this to the test case you creat
 
 ### Using replay_test
 
-The `replay_test` context manager is the main way to run test cases. It will replay the inputs from the demonstration session with all of the arguments passed to the agent function.
+The `replay_test` context manager is the main way to run test cases. It provides:
 
-The `inputs` variable is a list of all the captured arguments to the agent function during the demonstration session. You are responsible for calling the agent function with these arguments.
+- A new session that will be linked to the test case (e.g. `flight-seat-change-test`) on Playgent dashboard
+- The exact inputs to the agent function from the demonstration session associated with the test case
+- A judge object that can be used to evaluate the test case results against the rubric
 
-In simple cases, you can just pass all the arguments directly to the agent function. However, you have the flexibility to only pass some arguments, and mock or stub out the others.
-
-You can also use the `judge` object to evaluate the results of the test case based on the generated rubric.
+You are responsible for calling the agent function with these inputs.
 
 ```python
 from playgent import replay_test
-from my_agent import booking_agent
+from example_agent import infer
 
-def test_flight_booking():
-    with replay_test("flight-booking-test") as (inputs, judge):
-        # Replay all inputs from the baseline session
-        for event in inputs:
-            booking_agent(**event.arguments)
+def test_flight_seat_change():
+    with replay_test("flight-seat-change-test") as (inputs, judge):
+        # Replay each call to `infer` from the recorded session
+        for inp in inputs:
+            infer(**inp.arguments)
 
-        # Evaluate against the rubric
+        # Evaluate the results against the rubric
         result = judge.evaluate()
+        assert result.passed
+```
 
-        # Assert the test passed
-        assert result.passed, f"Test failed: {result.summary}"
+<Note>
+  Evaluation uses LLM-as a judge to evaluate the test case results against the
+  rubric.
+</Note>
+
+In some cases, you may want to mock or stub out certain inputs to the agent function. You have the flexibility to define how you run the test.
+
+```python
+from playgent import replay_test
+from example_agent import infer
+
+def test_flight_date():
+    with replay_test("flight-date-test") as (inputs, judge):
+        for inp in inputs:
+            # Replace the old timestamp with the current time
+            inp.arguments["flight_date"] = get_current_time()
+            infer(**inp.arguments)
+        result = judge.evaluate()
+        assert result.passed
+```
+
+You can even define your own custom logic to run the test.
+
+```python
+def test_book_cancel_ticket():
+    with replay_test("flight-book-cancel-ticket") as (_, judge):
+        infer(input_text="Book a ticket for San Francisco to New York on October 27, 2025")
+        infer(input_text="Can you cancel the ticket?")
+        result = judge.evaluate()
+        assert result.passed
 ```
 
 ### Integration with Test Runners
@@ -144,11 +174,6 @@ class TestAgentBehavior(unittest.TestCase):
             self.assertTrue(result.passed)
 ```
 
-<Note>
-  Evaluation uses advanced LLM-as a judge to evaluate the test case results
-  against the rubric.
-</Note>
-
 ## Test Case Management
 
 ### Organizing Tests
@@ -174,14 +199,6 @@ When expected behavior changes:
 1. Record a new demonstration session with correct behavior
 2. Annotate the new session and link it to the test case
 3. Tests will now use the new demonstration session
-
-### Versioning
-
-Test cases are versioned automatically:
-
-- Each update creates a new version
-- You can compare versions in the dashboard
-- Roll back to previous versions if needed
 
 ## CI/CD Integration
 
@@ -245,23 +262,6 @@ def test_booking_sold_out():
         for event in inputs:
             booking_agent(**event.arguments)
         assert judge.evaluate().passed
-```
-
-### Parameterized Tests
-
-```python
-@pytest.mark.parametrize("test_name,user_id,min_score", [
-    ("booking-success", "user_123", 90),
-    ("booking-cancellation", "user_456", 85),
-    ("seat-change", "user_789", 80)
-])
-def test_agent_quality(test_name, user_id, min_score):
-    with replay_test(test_name) as (inputs, judge):
-        for event in inputs:
-            booking_agent(**event.arguments)
-
-        result = judge.evaluate()
-        assert result.score >= min_score
 ```
 
 <CardGroup cols={2}>
