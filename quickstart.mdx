@@ -1,80 +1,230 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+description: "Get started with Playgent in minutes"
 ---
 
-## Get started in three steps
+## Installation
 
-Get your documentation site running locally and make your first customization.
+First, install Playgent via pip:
 
-### Step 1: Set up your local environment
+```bash
+pip install playgent
+```
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+## Environment Setup
 
-### Step 2: Deploy your changes
+Create a `.env` file with your API keys:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
+```bash
+PLAYGENT_API_KEY=your-playgent-api-key
+OPENAI_API_KEY=your-openai-api-key
+```
+
+## Step 1: Instrument your agent to record sessions
+
+Replace the standard OpenAI import with Playgent's drop-in replacement and add the `@record` decorator to your agent functions.
+
+Here's the basic pattern:
+
+```python
+from playgent.openai import OpenAI
+from playgent import record
+
+client = OpenAI()
+
+@record
+def my_agent(user_input: str):
+    # Your agent logic here
+    ...
+```
+
+That's it! The `@record` decorator will automatically track all OpenAI calls made within the function.
+
+<Accordion title="See complete todo-list agent example">
+
+Here's a complete example of an instrumented agent:
+
+```python
+import json
+from typing import List
+import dotenv
+import os
+
+dotenv.load_dotenv()
+
+from playgent.openai import OpenAI
+from playgent import record
+
+client = OpenAI()  # Automatically tracks all OpenAI calls
+
+# Example todo-list agent
+todo_list: List[str] = []
+
+def add_to_todo_list(task: str) -> str:
+    todo_list.append(task)
+    return f"Added '{task}' to todo list"
+
+def get_todo_list() -> List[str]:
+    return todo_list
+
+def get_todo_list_size() -> int:
+    return len(todo_list)
+
+tools = [
+    {
+        "type": "function",
+        "name": "add_to_todo_list",
+        "description": "Add a task to the todo list.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "The task to add to the todo list",
+                },
+            },
+            "required": ["task"],
+        },
+    },
+    {
+        "type": "function",
+        "name": "get_todo_list",
+        "description": "Get the current todo list.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "type": "function",
+        "name": "get_todo_list_size",
+        "description": "Get the number of items currently in the todo list.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+]
+
+@record  # This decorator tracks all LLM and tool calls made by your agent
+def infer(input_text: str, model: str = "gpt-4", tools_list: List = None):
+    if tools_list is None:
+        tools_list = tools
+
+    messages = [{"role": "user", "content": input_text}]
+
+    while True:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=tools_list
+        )
+
+        # Handle tool calls
+        if response.choices[0].message.tool_calls:
+            messages.append(response.choices[0].message)
+
+            for tool_call in response.choices[0].message.tool_calls:
+                name = tool_call.function.name
+                args = json.loads(tool_call.function.arguments)
+
+                if name == "add_to_todo_list":
+                    result = add_to_todo_list(**args)
+                elif name == "get_todo_list":
+                    result = get_todo_list()
+                elif name == "get_todo_list_size":
+                    result = get_todo_list_size()
+                else:
+                    result = f"Unknown tool: {name}"
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": json.dumps({"result": result})
+                })
+        else:
+            break
+
+    return {
+        "final_output": response.choices[0].message.content,
+        "todo_list": todo_list
+    }
+
+if __name__ == "__main__":
+    # Just use your agent like normal, Playgent will handle the rest!
+    result = infer("Add 'buy milk' to my todo list")
+    print(result)
+```
+
 </Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<Note>
+  The `@record` decorator automatically captures all interactions within the
+  function
+</Note>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+## Step 2: Create a Test Case
 
-### Step 3: Go live
+Once your agent is instrumented and running, you can create test cases from the Playgent dashboard. Navigate to "Tests" and create a test case to describe a specific agent behavior you'd like to test.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<img
+  style={{ borderRadius: "0.5rem" }}
+  src="/images/createtest.gif"
+  alt="Creating a test case in Playgent dashboard"
+/>
+
+<Note>
+  Test cases define expected behaviors that your agent should consistently meet.
+</Note>
+
+## Step 3: Demonstrate a run
+
+Run your agent to demonstrate the behavior you'd like to test and review the recorded session on the dashboard. Annotate the session and select the test case you just created.
+
+<img
+  style={{ borderRadius: "0.5rem" }}
+  src="/images/annotatesession.png"
+  alt="Annotating a session in Playgent dashboard"
+/>
+
+<Tip>
+  Annotations help you define what correct behavior looks like, and will be used
+  to generate a rubric for the test case.
+</Tip>
+
+## Step 4: Run tests via replay
+
+After creating test cases with annotated sessions, you can replay them to verify your agent behaves correctly:
+
+```python
+from playgent import replay_test
+from example_agent import infer
+
+def test_flight_seat_change():
+    # Replay all inputs from the recorded session and evaluate against the rubric
+    with replay_test("flight-seat-change-test") as (inputs, judge):
+        for inp in inputs:
+            infer(**inp.arguments)
+
+        # Evaluate the results against the rubric
+        result = judge.evaluate()
+        assert result.passed
+```
+
+<Tip>
+  The `replay_test` context manager provides the recorded inference inputs and a
+  judge object. The judge object can be used to evaluate the test case results
+  against the rubric. You can run this with pytest or any other test runner.
+</Tip>
+
+## What's happening?
+
+1. **Instrument**: The `@record` decorator captures all OpenAI API calls and function arguments from your agent
+2. **Create Test Cases**: Use the dashboard to turn recorded sessions into reusable test cases
+3. **Annotate**: Review sessions and annotate expected behaviors and outcomes
+4. **Replay & Evaluate**: `replay_test()` replays the same inputs and `evaluate()` compares results against your annotations
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
+<Card
+  title="API Reference"
+  icon="code"
+  href="/api-reference/introduction"
+  horizontal
+>
+  Explore the complete Playgent API documentation.
 </Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

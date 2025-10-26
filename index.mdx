@@ -1,97 +1,72 @@
 ---
 title: "Introduction"
-description: "Welcome to the new home for your documentation"
+description: "Record and test your OpenAI agent sessions"
 ---
 
-## Setting up
+# Playgent
 
-Get your documentation site up and running in minutes.
+Playgent is an agent testing library that helps you record and test your OpenAI agent sessions. Build reliable AI agents with confidence by capturing real interactions and replaying them as tests.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+## Quick Start
 
-## Make it yours
+Get started with Playgent in four simple steps:
 
-Design a docs site that looks great and empowers your users.
+<Steps>
+  <Step title="Instrument your agent" icon="code">
+    Add the `@record` decorator to track all OpenAI calls automatically. [See
+    Step 1](/quickstart#step-1-instrument-your-agent-to-record-sessions)
+  </Step>
+  <Step title="Create a Test Case" icon="flask">
+    Use the dashboard to turn recorded sessions into test cases. [See Step
+    2](/quickstart#step-2-create-a-test-case)
+  </Step>
+  <Step title="Demonstrate a run" icon="chart-line">
+    Review and annotate sessions with expected outcomes. [See Step
+    3](/quickstart#step-3-demonstrate-a-run)
+  </Step>
+  <Step title="Run tests via replay" icon="rotate">
+    Replay test cases and verify your agent behaves correctly. [See Step
+    4](/quickstart#step-4-run-tests-via-replay)
+  </Step>
+</Steps>
+
+## Why Playgent?
+
+Testing AI agents is challenging because their behavior can be non-deterministic and difficult to validate. Playgent solves this by:
+
+- **Capturing real interactions** - Record actual agent sessions as they happen
+- **Easy annotation** - Define expected behaviors through an intuitive dashboard
+- **Reliable replay** - Test against real scenarios, not mocked data
+- **Catch regressions** - Ensure agent updates don't break existing functionality
+
+## Key Features
 
 <Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+  <Card title="Drop-in Replacement" icon="exchange">
+    Simply replace `from openai import OpenAI` with `from playgent.openai import
+    OpenAI` - no other changes needed.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Session Recording" icon="circle-dot">
+    Automatically capture all agent interactions with the `@record` decorator
+    and `session()` context manager.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Test Replay" icon="rotate">
+    Replay recorded sessions to verify your agent behaves correctly across
+    updates and changes.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Result Evaluation" icon="check-circle">
+    Evaluate test results against expected outcomes defined on the Playgent
+    dashboard.
   </Card>
 </Columns>
 
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
+## Get Started
 
 <Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
+    Get started with Playgent in minutes.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore the complete Playgent API documentation.
   </Card>
 </Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>

@@ -1,0 +1,125 @@
+---
+title: "Todo List Agent"
+description: "A complete example showing agent recording, testing, and evaluation"
+---
+
+## The Agent
+
+Here's a complete todo-list agent that uses OpenAI's function calling:
+
+```python
+import json
+from typing import List
+import dotenv
+import os
+
+dotenv.load_dotenv()
+
+from playgent.openai import OpenAI
+from playgent import record
+
+# Initialize the Playgent-instrumented OpenAI client
+client = OpenAI()
+
+# Todo list state
+todo_list: List[str] = []
+
+# Tool functions
+def add_to_todo_list(task: str) -> str:
+    todo_list.append(task)
+    return f"Added '{task}' to todo list"
+
+def get_todo_list() -> List[str]:
+    return todo_list
+
+def get_todo_list_size() -> int:
+    return len(todo_list)
+
+# Tool definitions for OpenAI
+tools = [
+    {
+        "type": "function",
+        "name": "add_to_todo_list",
+        "description": "Add a task to the todo list.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "The task to add to the todo list",
+                },
+            },
+            "required": ["task"],
+        },
+    },
+    {
+        "type": "function",
+        "name": "get_todo_list",
+        "description": "Get the current todo list.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "type": "function",
+        "name": "get_todo_list_size",
+        "description": "Get the number of items currently in the todo list.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+]
+
+@record  # This decorator tracks all LLM and tool calls
+def infer(input_text: str, model: str = "gpt-4", tools_list: List = None):
+    """Main agent function that processes user input and manages tools."""
+    if tools_list is None:
+        tools_list = tools
+
+    messages = [{"role": "user", "content": input_text}]
+
+    while True:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=tools_list
+        )
+
+        # Handle tool calls
+        if response.choices[0].message.tool_calls:
+            messages.append(response.choices[0].message)
+
+            for tool_call in response.choices[0].message.tool_calls:
+                name = tool_call.function.name
+                args = json.loads(tool_call.function.arguments)
+
+                # Execute the appropriate tool
+                if name == "add_to_todo_list":
+                    result = add_to_todo_list(**args)
+                elif name == "get_todo_list":
+                    result = get_todo_list()
+                elif name == "get_todo_list_size":
+                    result = get_todo_list_size()
+                else:
+                    result = f"Unknown tool: {name}"
+
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": json.dumps({"result": result})
+                })
+        else:
+            # No more tool calls, return final response
+            break
+
+    return {
+        "final_output": response.choices[0].message.content,
+        "todo_list": todo_list
+    }
+
+if __name__ == "__main__":
+    # Run the agent - Playgent automatically records this session
+    result = infer("Add 'buy milk' to my todo list")
+    print(result)
+```
+
+<Note>
+  The `@record` decorator automatically captures all interactions without
+  changing your agent's logic
+</Note>
