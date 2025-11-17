@@ -15,12 +15,8 @@
         "pages": ["index", "quickstart"]
       },
       {
-        "group": "Core Concepts",
-        "pages": [
-          "core-concepts/event",
-          "core-concepts/session",
-          "core-concepts/test_case"
-        ]
+        "group": "Providers",
+        "pages": ["providers/openai", "providers/anthropic"]
       },
       {
         "group": "Examples",

@@ -11,194 +11,65 @@ First, install Playgent via pip:
 pip install playgent
 ```
 
-## Environment Setup
+## Step 1: Create an API key
 
-Create a `.env` file with your API keys:
+Go to the [Playgent dashboard](https://playgent-dashboard.vercel.app) and create an API key.
 
-```bash
-PLAYGENT_API_KEY=your-playgent-api-key
-OPENAI_API_KEY=your-openai-api-key
-```
+1. Click on the "Account" button in the bottom left corner.
+2. Click on the "API Keys" tab.
+3. Click on the "Create API Key" button.
+4. Copy the API key and save it to a secure location.
 
-## Step 1: Instrument your agent to record sessions
+## Step 2: Instrument your agent
 
-Replace the standard OpenAI import with Playgent's drop-in replacement and add the `@record` decorator to your agent functions.
+Wrap your LLM client and add the `@record` decorator to your agent functions to automatically track all interactions.
 
 Here's the basic pattern:
 
 ```python
-from playgent.openai import OpenAI
-from playgent import record
+from openai import OpenAI
+from playgent import record, wrap_openai
 
-client = OpenAI()
+client = wrap_openai(OpenAI(), api_key="<PLAYGENT-API-KEY>")
 
 @record
-def my_agent(user_input: str):
-    # Your agent logic here
-    ...
+def inference(user_input: str):
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": user_input}]
+    )
+    return response.choices[0].message.content
 ```
 
-That's it! The `@record` decorator will automatically track all OpenAI calls made within the function.
-
-<Accordion title="See complete todo-list agent example">
-
-Here's a complete example of an instrumented agent:
-
-```python
-import json
-from typing import List
-import dotenv
-import os
-
-dotenv.load_dotenv()
-
-from playgent.openai import OpenAI
-from playgent import record
-
-client = OpenAI()  # Automatically tracks all OpenAI calls
-
-# Example todo-list agent
-todo_list: List[str] = []
-
-def add_to_todo_list(task: str) -> str:
-    todo_list.append(task)
-    return f"Added '{task}' to todo list"
-
-def get_todo_list() -> List[str]:
-    return todo_list
-
-def get_todo_list_size() -> int:
-    return len(todo_list)
-
-tools = [
-    {
-        "type": "function",
-        "name": "add_to_todo_list",
-        "description": "Add a task to the todo list.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "description": "The task to add to the todo list",
-                },
-            },
-            "required": ["task"],
-        },
-    },
-    {
-        "type": "function",
-        "name": "get_todo_list",
-        "description": "Get the current todo list.",
-        "parameters": {"type": "object", "properties": {}},
-    },
-    {
-        "type": "function",
-        "name": "get_todo_list_size",
-        "description": "Get the number of items currently in the todo list.",
-        "parameters": {"type": "object", "properties": {}},
-    },
-]
-
-@record  # This decorator tracks all LLM and tool calls made by your agent
-def infer(input_text: str, model: str = "gpt-4", tools_list: List = None):
-    if tools_list is None:
-        tools_list = tools
-
-    messages = [{"role": "user", "content": input_text}]
-
-    while True:
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            tools=tools_list
-        )
-
-        # Handle tool calls
-        if response.choices[0].message.tool_calls:
-            messages.append(response.choices[0].message)
-
-            for tool_call in response.choices[0].message.tool_calls:
-                name = tool_call.function.name
-                args = json.loads(tool_call.function.arguments)
-
-                if name == "add_to_todo_list":
-                    result = add_to_todo_list(**args)
-                elif name == "get_todo_list":
-                    result = get_todo_list()
-                elif name == "get_todo_list_size":
-                    result = get_todo_list_size()
-                else:
-                    result = f"Unknown tool: {name}"
-
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "content": json.dumps({"result": result})
-                })
-        else:
-            break
-
-    return {
-        "final_output": response.choices[0].message.content,
-        "todo_list": todo_list
-    }
-
-if __name__ == "__main__":
-    # Just use your agent like normal, Playgent will handle the rest!
-    result = infer("Add 'buy milk' to my todo list")
-    print(result)
-```
-
-</Accordion>
+That's it! The `@record` decorator marks the function as a Playgent trace. The `wrap_openai()` function will automatically track all OpenAI calls made using the wrapped client. This allows you to easily use other libraries with no vendor lock-in.
 
 <Note>
-  The `@record` decorator automatically captures all interactions within the
-  function
+  You can also use the `PLAYGENT_API_KEY` environment variable to set the API
+  key.
 </Note>
 
-## Step 2: Create Test Cases
+## Step 2: View traces and spans on the dashboard
 
-Once your agent is instrumented, all recorded sessions will appear in the Playgent dashboard.
+Once your agent is instrumented, all traces and spans will appear in the [Playgent dashboard](https://playgent-dashboard.vercel.app)
 
-Now, the true value of Playgent comes in. You can create test cases from the dashboard by selecting a session and creating a test case.
+The dashboard provides:
 
-See [Test Cases](/core-concepts/test_case) to learn how to create a test case from a demonstration session.
-
-## Step 3: Run Tests
-
-After creating test cases with annotated sessions, you can define a test suite to replay them to verify your agent behaves correctly:
-
-```python
-from playgent import replay_test
-from example_agent import infer
-
-def test_flight_seat_change():
-    with replay_test("flight-seat-change-test") as (inputs, judge):
-        # Replay each call to `infer` from the recorded session
-        for inp in inputs:
-            infer(**inp.arguments)
-
-        # Evaluate the results against the rubric
-        result = judge.evaluate()
-        assert result.passed
-```
-
-<Tip>
-  The `replay_test` context manager simply creates a session linked to the test
-  case. It also provides the exact inputs to the agent replayed from the
-  demonstration session associated with the test case.
-</Tip>
-
-See [Running Test Cases](/core-concepts/test_case#running-test-cases) to learn more about how to run tests.
+- **Automatic issue detection** - Playgent analyzes each trace to identify problems
+- **Issue clustering** - Similar issues are grouped together for easy prioritization
+- **Trace visualization** - See the full execution flow with all spans and events
+- **User interaction insights** - Understand exactly how users are interacting with your agent
 
 ## Next steps
 
-<Card
-  title="API Reference"
-  icon="code"
-  href="/api-reference/introduction"
-  horizontal
->
-  Explore the complete Playgent API documentation.
-</Card>
+<CardGroup cols={2}>
+  <Card title="OpenAI Provider" icon="brain" href="/providers/openai">
+    Learn more about integrating with OpenAI
+  </Card>
+  <Card
+    title="Anthropic Provider"
+    icon="message-bot"
+    href="/providers/anthropic"
+  >
+    Learn more about integrating with Anthropic
+  </Card>
+</CardGroup>

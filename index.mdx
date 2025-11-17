@@ -1,64 +1,35 @@
 ---
 title: "Introduction"
-description: "Record and test your agent sessions"
+description: "Automatic agent observability and issue detection"
 ---
 
 # Playgent
 
-Playgent is an agent testing library that helps you record and test your agent sessions. Build reliable AI agents with confidence by capturing real interactions and replaying them as tests.
+Playgent is an agent observability platform that automatically detects and clusters problematic traces. You don't need to write a single rubric or eval - Playgent automatically analyzes each trace to detect user struggles, unmet feature needs, agent failures, and more.
 
 ## Quick Start
 
-Get started with Playgent in four simple steps:
+Get started with Playgent in two simple steps:
 
 <Steps>
   <Step title="Instrument your agent" icon="code">
-    Add the `@record` decorator to track all OpenAI calls automatically. [See
-    Step 1](/quickstart#step-1-instrument-your-agent-to-record-sessions)
+    Add the `@record` decorator to create traces and wrap your LLM client - see
+    an example in [quickstart](/quickstart)
   </Step>
-  <Step title="Create a Test Case" icon="flask">
-    Use the dashboard to turn recorded sessions into test cases. [See Step
-    2](/quickstart#step-2-create-a-test-case)
-  </Step>
-  <Step title="Demonstrate a run" icon="chart-line">
-    Review and annotate sessions with expected outcomes. [See Step
-    3](/quickstart#step-3-demonstrate-a-run)
-  </Step>
-  <Step title="Run tests via replay" icon="rotate">
-    Replay test cases and verify your agent behaves correctly. [See Step
-    4](/quickstart#step-4-run-tests-via-replay)
+  <Step title="Monitor your dashboard" icon="chart-line">
+    Playgent automatically analyzes your traces and creates incident tickets on
+    the [dashboard](https://playgent-dashboard.vercel.app)
   </Step>
 </Steps>
 
 ## Why Playgent?
 
-Testing AI agents is challenging because their behavior can be non-deterministic and difficult to validate. Playgent solves this by:
+Understanding how your AI agent performs in production is critical. Playgent makes this easy by:
 
-- **Capturing real interactions** - Record actual agent sessions as they happen
-- **Easy annotation** - Define expected behaviors through an intuitive dashboard
-- **Reliable replay** - Test against real scenarios, not mocked data
-- **Catch regressions** - Ensure agent updates don't break existing functionality
-
-## Key Features
-
-<Columns cols={2}>
-  <Card title="Drop-in Replacement" icon="exchange">
-    Simply replace `from openai import OpenAI` with `from playgent.openai import
-    OpenAI` - no other changes needed.
-  </Card>
-  <Card title="Session Recording" icon="circle-dot">
-    Automatically capture all agent interactions with the `@record` decorator
-    and `session()` context manager.
-  </Card>
-  <Card title="Test Replay" icon="rotate">
-    Replay recorded sessions to verify your agent behaves correctly across
-    updates and changes.
-  </Card>
-  <Card title="Result Evaluation" icon="check-circle">
-    Evaluate test results against expected outcomes defined on the Playgent
-    dashboard.
-  </Card>
-</Columns>
+- **Automatic issue detection** - No need to write rubrics or evals. Playgent automatically identifies problems in your traces.
+- **Intelligent clustering** - Similar issues are grouped together so you can understand patterns at scale
+- **Real user insights** - See exactly how users are struggling with your agent
+- **Built on OTel standards** - Easily export your traces and spans for further analysis
 
 ## Get Started
 
@@ -66,7 +37,7 @@ Testing AI agents is challenging because their behavior can be non-deterministic
   <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
     Get started with Playgent in minutes.
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/introduction">
-    Explore the complete Playgent API documentation.
+  <Card title="Providers" icon="plug" href="/providers/openai">
+    Learn how to integrate with OpenAI, Anthropic, and more.
   </Card>
 </Columns>

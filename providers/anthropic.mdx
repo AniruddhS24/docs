@@ -1,0 +1,34 @@
+---
+title: "Anthropic"
+description: "Integrate Playgent with Anthropic"
+---
+
+# Anthropic Provider
+
+The Anthropic provider allows you to automatically track all Anthropic API calls in your agent.
+
+## Installation
+
+```bash
+pip install playgent anthropic
+```
+
+## Basic Usage
+
+Use `wrap_anthropic()` to wrap your Anthropic client and the `@record` decorator on your agent functions:
+
+```python
+from anthropic import Anthropic
+from playgent import record, wrap_anthropic
+
+client = wrap_anthropic(Anthropic())
+
+@record
+def my_agent(user_input: str):
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": user_input}]
+    )
+    return response.content[0].text
+```
