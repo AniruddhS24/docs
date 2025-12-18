@@ -1,0 +1,150 @@
+---
+title: "Generate Test Cases"
+api: "POST /v1/test-cases/generate"
+description: "Auto-generate test cases from documents or conversation logs"
+---
+
+Automatically generate test cases from documents, conversation logs, or failure analysis. This endpoint uses AI to create comprehensive test suites including edge cases.
+
+<ParamField body="agent_id" type="string" required>
+  Agent to generate test cases for
+</ParamField>
+
+<ParamField body="source_type" type="string" required>
+  Source type: `documents`, `conversation_logs`, or `failure_analysis`
+</ParamField>
+
+<ParamField body="documents" type="array">
+  Documents to generate test cases from (when `source_type` is `documents`)
+  <Expandable title="document object">
+    <ParamField body="content" type="string" required>
+      Document content
+    </ParamField>
+    <ParamField body="name" type="string">
+      Document name
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="conversation_logs" type="array">
+  Historical conversations (when `source_type` is `conversation_logs`)
+  <Expandable title="log object">
+    <ParamField body="input" type="string" required>
+      User input
+    </ParamField>
+    <ParamField body="output" type="string" required>
+      Agent output
+    </ParamField>
+    <ParamField body="feedback" type="string">
+      User feedback: `good`, `bad`, or `neutral`
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="generation_config" type="object">
+  Configuration for test generation
+  <Expandable title="properties">
+    <ParamField body="num_test_cases" type="integer">
+      Number of test cases to generate (default: 10)
+    </ParamField>
+    <ParamField body="difficulty_distribution" type="object">
+      Distribution of difficulty levels
+      <Expandable title="properties">
+        <ParamField body="easy" type="number">
+          Proportion of easy tests
+        </ParamField>
+        <ParamField body="medium" type="number">
+          Proportion of medium tests
+        </ParamField>
+        <ParamField body="hard" type="number">
+          Proportion of hard tests
+        </ParamField>
+      </Expandable>
+    </ParamField>
+    <ParamField body="include_edge_cases" type="boolean">
+      Include adversarial edge cases (default: true)
+    </ParamField>
+    <ParamField body="focus_areas" type="array">
+      Specific areas to focus on (e.g., `policy_violations`,
+      `ambiguous_requests`)
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="generated_test_cases" type="array" required>
+  Array of generated test cases
+  <Expandable title="properties">
+    <ResponseField name="name" type="string">
+      Test case name
+    </ResponseField>
+    <ResponseField name="turns" type="array">
+      Test turns
+    </ResponseField>
+    <ResponseField name="difficulty" type="string">
+      Difficulty level
+    </ResponseField>
+    <ResponseField name="rationale" type="string">
+      Why this test was generated
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="coverage_analysis" type="object" required>
+  Analysis of topic coverage
+  <Expandable title="properties">
+    <ResponseField name="policy_topics_covered" type="array">
+      Topics covered by generated tests
+    </ResponseField>
+    <ResponseField name="gaps_identified" type="array">
+      Topics not covered
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/test-cases/generate \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "agent_abc123",
+    "source_type": "documents",
+    "documents": [
+      {
+        "content": "Our refund policy allows returns within 30 days...",
+        "name": "refund_policy.md"
+      }
+    ],
+    "generation_config": {
+      "num_test_cases": 10,
+      "difficulty_distribution": { "easy": 0.3, "medium": 0.5, "hard": 0.2 },
+      "include_edge_cases": true,
+      "focus_areas": ["policy_violations", "ambiguous_requests"]
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "generated_test_cases": [
+    {
+      "name": "Edge Case: Refund after 30 days",
+      "turns": [
+        {
+          "input": { "text": "I bought this 45 days ago, can I return it?" },
+          "expected_behavior": "Agent should explain the 30-day policy limit"
+        }
+      ],
+      "difficulty": "hard",
+      "rationale": "Tests boundary condition of refund policy"
+    }
+  ],
+  "coverage_analysis": {
+    "policy_topics_covered": ["returns", "refunds", "exchanges"],
+    "gaps_identified": ["international shipping returns not covered"]
+  }
+}
+```
+</ResponseExample>

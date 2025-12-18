@@ -1,0 +1,105 @@
+---
+title: "Create Test Case"
+api: "POST /v1/test-cases"
+description: "Create a test case with multi-turn support"
+---
+
+Create a test case to evaluate your agent. Supports single and multi-turn conversations.
+
+<ParamField body="name" type="string" required>
+  Name for the test case
+</ParamField>
+
+<ParamField body="agent_id" type="string" required>
+  Agent to test against
+</ParamField>
+
+<ParamField body="type" type="string">
+  Test type: `single` or `multi` (default: `single`)
+</ParamField>
+
+<ParamField body="turns" type="array" required>
+  Array of conversation turns
+  <Expandable title="turn object">
+    <ParamField body="input" type="object" required>
+      User input for this turn
+      <Expandable title="properties">
+        <ParamField body="text" type="string" required>
+          Input text
+        </ParamField>
+        <ParamField body="attachments" type="array">
+          Optional file attachments
+        </ParamField>
+      </Expandable>
+    </ParamField>
+    <ParamField body="expected_behavior" type="string" required>
+      Description of expected agent behavior
+    </ParamField>
+    <ParamField body="scorers" type="array">
+      Scorers to use for this turn
+    </ParamField>
+    <ParamField body="ground_truth" type="string">
+      Factual ground truth for evaluation
+    </ParamField>
+    <ParamField body="context" type="array">
+      Context documents for RAG evaluation
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="tags" type="array">
+  Tags for filtering and grouping test cases
+</ParamField>
+
+<ResponseField name="id" type="string" required>
+  Unique test case identifier
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Test case name
+</ResponseField>
+
+<ResponseField name="agent_id" type="string" required>
+  Associated agent ID
+</ResponseField>
+
+<ResponseField name="created_at" type="string" required>
+  ISO 8601 timestamp
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/test-cases \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Refund Request Flow",
+    "agent_id": "agent_abc123",
+    "type": "multi",
+    "turns": [
+      {
+        "input": { "text": "I want a refund for order #1234" },
+        "expected_behavior": "Agent should ask for order details and reason",
+        "scorers": ["relevance", "completeness"],
+        "ground_truth": "Order #1234 was placed on Dec 1, 2024 for $99.99",
+        "context": ["Order #1234: Status=Delivered, Amount=$99.99"]
+      }
+    ],
+    "tags": ["customer-support", "refunds", "critical-path"]
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "tc_xyz789",
+  "name": "Refund Request Flow",
+  "agent_id": "agent_abc123",
+  "type": "multi",
+  "turns": [...],
+  "tags": ["customer-support", "refunds", "critical-path"],
+  "created_at": "2024-12-16T10:00:00Z"
+}
+```
+</ResponseExample>

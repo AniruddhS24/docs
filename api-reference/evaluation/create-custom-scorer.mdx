@@ -1,0 +1,242 @@
+---
+title: "Create Custom Scorer"
+api: "POST /v1/scorers"
+description: "Create a custom evaluation metric beyond the 27 built-in scorers"
+---
+
+Create a custom scorer for domain-specific evaluation criteria. Playgent provides 27 built-in metrics (RAG, safety, agentic, multi-turn), but use this endpoint when you need evaluation logic specific to your use case.
+
+<Note>
+  **Already have 27 metrics?** Check out the [built-in
+  scorers](/api-reference/evaluation/evaluate#-built-in-evaluation-metrics)
+  before creating custom ones. Most use cases are covered by `playval`,
+  `faithfulness`, `answer_relevancy`, `bias`, `toxicity`, and other
+  out-of-the-box metrics.
+</Note>
+
+## When to Create Custom Scorers
+
+- **Domain-specific quality**: e.g., "Does the response follow medical compliance rules?"
+- **Business logic**: e.g., "Did the agent offer the correct discount tier?"
+- **Custom rubrics**: Your own evaluation criteria not covered by built-ins
+- **Code-based evaluation**: Regex, exact matching, or programmatic checks
+
+## Scorer Types
+
+<AccordionGroup>
+  <Accordion title="llm_judge" icon="gavel">
+    Use an LLM to evaluate based on your custom rubric. Most flexible option.
+    **Best for**: Subjective quality assessment, custom criteria
+  </Accordion>
+
+{" "}
+<Accordion title="code" icon="code">
+  Execute Python code to evaluate the response programmatically. **Best for**:
+  Exact matching, calculations, format validation
+</Accordion>
+
+  <Accordion title="regex" icon="asterisk">
+    Use regex patterns to validate response format or content. **Best for**:
+    Format checking, required keyword presence
+  </Accordion>
+</AccordionGroup>
+
+## Parameters
+
+<ParamField body="name" type="string" required>
+  Scorer name (e.g., `policy_compliance`, `discount_accuracy`)
+</ParamField>
+
+<ParamField body="description" type="string">
+  Human-readable description of what this scorer evaluates
+</ParamField>
+
+<ParamField body="type" type="string" required>
+  Scorer type: `llm_judge`, `code`, or `regex`
+</ParamField>
+
+<ParamField body="config" type="object" required>
+  Scorer configuration
+  <Expandable title="properties">
+    <ParamField body="model" type="string">
+      LLM model for `llm_judge` type (default: `gpt-4-turbo`)
+    </ParamField>
+    <ParamField body="rubric" type="string" required>
+      Evaluation rubric (for `llm_judge`) or code (for `code` type) **Available
+      template variables**: `{{ input }}`, `{{ output }}`, `{{ context }}`, `
+      {{ ground_truth }}`, `{{ conversation_history }}`, plus any custom
+      variables
+    </ParamField>
+    <ParamField body="pattern" type="string">
+      Regex pattern (for `regex` type)
+    </ParamField>
+    <ParamField body="output_schema" type="object">
+      Expected output structure for `llm_judge`
+      <Expandable title="properties">
+        <ParamField body="score" type="string">
+          Score field type (usually `number`)
+        </ParamField>
+        <ParamField body="reasoning" type="string">
+          Reasoning field type (usually `string`)
+        </ParamField>
+        <ParamField body="[custom]" type="string">
+          Additional custom fields (e.g., `violations`, `suggestions`)
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="variables" type="object">
+  Custom variables to inject into the rubric template (e.g., company policies,
+  reference data)
+</ParamField>
+
+<ResponseField name="scorer_id" type="string" required>
+  Unique scorer identifier (use in evaluate requests)
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Scorer name
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.playgent.com/v1/scorers \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "policy_compliance",
+    "description": "Checks if the response adheres to company policies",
+    "type": "llm_judge",
+    "config": {
+      "model": "gpt-4-turbo",
+      "rubric": "You are evaluating whether an AI agent response complies with company policies.\n\nPolicies:\n{{policies}}\n\nAgent Response:\n{{output}}\n\nScore from 0-1 where 1 is fully compliant. List any violations. Explain your reasoning.",
+      "output_schema": {
+        "score": "number",
+        "reasoning": "string",
+        "violations": "array"
+      }
+    },
+    "variables": {
+      "policies": "1. Never promise refunds over $500 without manager approval\n2. Always verify customer identity before discussing order details\n3. Do not discuss competitor products"
+    }
+  }'
+```
+
+```python Python
+from playgent import Playgent
+
+client = Playgent(api_key="your-api-key")
+
+scorer = client.scorers.create(
+    name="policy_compliance",
+    description="Checks if the response adheres to company policies",
+    type="llm_judge",
+    config={
+        "model": "gpt-4-turbo",
+        "rubric": """You are evaluating whether an AI agent response complies with company policies.
+
+Policies:
+{{policies}}
+
+Agent Response:
+{{output}}
+
+Score from 0-1 where 1 is fully compliant. List any violations. Explain your reasoning.""",
+        "output_schema": {
+            "score": "number",
+            "reasoning": "string",
+            "violations": "array"
+        }
+    },
+    variables={
+        "policies": """1. Never promise refunds over $500 without manager approval
+2. Always verify customer identity before discussing order details
+3. Do not discuss competitor products"""
+    }
+)
+
+print(f"Scorer created: {scorer.id}")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Response
+{
+  "scorer_id": "scorer_abc123",
+  "name": "policy_compliance"
+}
+```
+
+</ResponseExample>
+
+## Example: Code-Based Scorer
+
+For programmatic evaluation:
+
+<RequestExample>
+
+```bash Code Scorer
+curl -X POST https://api.playgent.com/v1/scorers \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "required_keywords",
+    "description": "Checks if response contains required keywords",
+    "type": "code",
+    "config": {
+      "rubric": "required = [\"refund\", \"policy\", \"30 days\"]\nfound = sum(1 for keyword in required if keyword.lower() in output.lower())\nscore = found / len(required)\nreasoning = f\"Found {found}/{len(required)} required keywords\"\nreturn {\"score\": score, \"reasoning\": reasoning}"
+    }
+  }'
+```
+
+</RequestExample>
+
+## Example: Regex Scorer
+
+For format validation:
+
+<RequestExample>
+
+```bash Regex Scorer
+curl -X POST https://api.playgent.com/v1/scorers \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "order_id_format",
+    "description": "Validates order ID format (ORD-XXXXX)",
+    "type": "regex",
+    "config": {
+      "pattern": "ORD-[0-9]{5}"
+    }
+  }'
+```
+
+</RequestExample>
+
+## Using Custom Scorers
+
+Once created, use your custom scorer in evaluation requests:
+
+```python
+evaluation = client.evaluate(
+    input="I want a refund",
+    output="I can process that $600 refund for you right away",
+    scorers=[
+        "scorer_abc123",  # Your custom policy_compliance scorer
+        "answer_relevancy",  # Built-in scorer
+        "faithfulness"  # Built-in scorer
+    ]
+)
+```
+
+## Tips
+
+- **Start with built-ins**: Try `playval` with a custom `expected_behavior` or use safety metrics like `bias`/`toxicity` before creating a full scorer
+- **Template variables**: Use `{{output}}`, `{{input}}`, `{{context}}` to reference evaluation data
+- **Combine with built-ins**: Mix custom scorers with RAG/safety/agentic metrics for comprehensive evaluation
+- **Version control**: Create new scorers for significant rubric changes rather than modifying existing ones

@@ -1,0 +1,146 @@
+---
+title: "Optimize Prompt"
+api: "POST /v1/optimize/prompt"
+description: "Automatically improve system prompts based on test failures"
+---
+
+Automatically analyze test failures and optimize your agent's system prompt. Uses intelligent failure clustering and DSPy-inspired optimization.
+
+<ParamField body="agent_id" type="string" required>
+  Agent to optimize
+</ParamField>
+
+<ParamField body="optimization_type" type="string" required>
+  Optimization strategy: `error_driven`, `metric_driven`, or `full`
+</ParamField>
+
+<ParamField body="failure_window" type="string">
+  Time window for failure analysis (e.g., "7d", "30d"). Used with
+  `error_driven`.
+</ParamField>
+
+<ParamField body="min_failures" type="integer">
+  Minimum failures required to trigger optimization (default: 5)
+</ParamField>
+
+<ParamField body="target_metrics" type="object">
+  Target metrics for `metric_driven` optimization
+  <Expandable title="properties">
+    <ParamField body="[metric_name]" type="object">
+      <Expandable title="properties">
+        <ParamField body="target" type="number">
+          Target score
+        </ParamField>
+        <ParamField body="current" type="number">
+          Current score
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="include_examples" type="boolean">
+  Include few-shot examples from successful tests (default: true)
+</ParamField>
+
+<ParamField body="max_examples" type="integer">
+  Maximum few-shot examples to include (default: 5)
+</ParamField>
+
+<ParamField body="constraints" type="object">
+  Optimization constraints
+  <Expandable title="properties">
+    <ParamField body="max_prompt_length" type="integer">
+      Maximum prompt character length
+    </ParamField>
+    <ParamField body="preserve_sections" type="array">
+      Sections to keep unchanged (e.g., ["safety_guidelines"])
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="optimization_id" type="string" required>
+  Optimization identifier
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Status: `running`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="original_prompt" type="string" required>
+  Original system prompt
+</ResponseField>
+
+<ResponseField name="optimized_prompt" type="string" required>
+  Improved system prompt
+</ResponseField>
+
+<ResponseField name="changes_made" type="array" required>
+  List of changes with rationale
+  <Expandable title="change object">
+    <ResponseField name="type" type="string">
+      Change type
+    </ResponseField>
+    <ResponseField name="content" type="string">
+      Change content
+    </ResponseField>
+    <ResponseField name="rationale" type="string">
+      Why this change was made
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="predicted_improvement" type="object" required>
+  Predicted metric improvements
+</ResponseField>
+
+<ResponseField name="validation_run_id" type="string" required>
+  ID of automatic validation run
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/optimize/prompt \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "agent_abc123",
+    "optimization_type": "error_driven",
+    "failure_window": "7d",
+    "min_failures": 5,
+    "include_examples": true,
+    "max_examples": 5,
+    "constraints": {
+      "max_prompt_length": 2000,
+      "preserve_sections": ["safety_guidelines"]
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "optimization_id": "opt_vwx234",
+  "status": "completed",
+  "original_prompt": "You are a helpful customer support agent...",
+  "optimized_prompt": "You are a customer support agent for Acme Corp. Follow these guidelines:\n\n1. Always verify order information before discussing refunds...\n\n## Examples\n<example>\nUser: I want a refund\nAssistant: I'd be happy to help with your refund...\n</example>",
+  "changes_made": [
+    {
+      "type": "added_instruction",
+      "content": "Always verify order information before discussing refunds",
+      "rationale": "12 failures were due to making claims about orders without verification"
+    },
+    {
+      "type": "added_few_shot",
+      "rationale": "Added 3 examples of successful refund conversations"
+    }
+  ],
+  "predicted_improvement": {
+    "faithfulness": { "from": 0.82, "to": 0.91 },
+    "relevance": { "from": 0.85, "to": 0.88 }
+  },
+  "validation_run_id": "run_abc789"
+}
+```
+</ResponseExample>

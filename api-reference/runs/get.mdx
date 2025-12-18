@@ -1,0 +1,166 @@
+---
+title: "Get Run"
+api: "GET /v1/runs/{run_id}"
+description: "Get detailed run results"
+---
+
+Retrieve detailed results for a test run including all turns, evaluations, and metrics.
+
+<ParamField path="run_id" type="string" required>
+  Unique run identifier
+</ParamField>
+
+<ResponseField name="run_id" type="string" required>
+  Run identifier
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Run status: `queued`, `running`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="success" type="boolean" required>
+  Whether all turns passed
+</ResponseField>
+
+<ResponseField name="test_case" type="object" required>
+  Test case information
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Test case ID
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Test case name
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="agent" type="object" required>
+  Agent information
+  <Expandable title="properties">
+    <ResponseField name="id" type="string">
+      Agent ID
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Agent name
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="turns" type="array" required>
+  Array of turn results
+  <Expandable title="turn object">
+    <ResponseField name="turn_index" type="integer">
+      Turn position
+    </ResponseField>
+    <ResponseField name="input" type="array">
+      Input messages
+    </ResponseField>
+    <ResponseField name="output" type="array">
+      Output messages
+    </ResponseField>
+    <ResponseField name="expected_behavior" type="string">
+      Expected behavior
+    </ResponseField>
+    <ResponseField name="success" type="boolean">
+      Whether turn passed
+    </ResponseField>
+    <ResponseField name="evaluation" type="object">
+      Evaluation results
+      <Expandable title="properties">
+        <ResponseField name="overall_pass" type="boolean">
+          Overall pass/fail
+        </ResponseField>
+        <ResponseField name="scorer_outputs" type="object">
+          Per-scorer results with score and reasoning
+        </ResponseField>
+        <ResponseField name="grader_output" type="string">
+          Grader explanation
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="metrics" type="object">
+      Performance metrics
+      <Expandable title="properties">
+        <ResponseField name="latency_ms" type="integer">
+          Response latency
+        </ResponseField>
+        <ResponseField name="tokens" type="object">
+          Token usage
+        </ResponseField>
+        <ResponseField name="cost_usd" type="number">
+          Estimated cost
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="trace_id" type="string">
+      Linked trace ID
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="summary" type="object" required>
+  Run summary
+  <Expandable title="properties">
+    <ResponseField name="turns_passed" type="integer">
+      Passing turns
+    </ResponseField>
+    <ResponseField name="turns_failed" type="integer">
+      Failed turns
+    </ResponseField>
+    <ResponseField name="avg_latency_ms" type="integer">
+      Average latency
+    </ResponseField>
+    <ResponseField name="total_cost_usd" type="number">
+      Total cost
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.playgent.com/v1/runs/run_def456 \
+  -H "Authorization: Bearer your-api-key"
+```
+
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "run_id": "run_def456",
+  "status": "completed",
+  "success": false,
+  "test_case": { "id": "tc_xyz789", "name": "Refund Request Flow" },
+  "agent": { "id": "agent_abc123", "name": "Customer Support Agent" },
+  "turns": [
+    {
+      "turn_index": 0,
+      "input": [{ "role": "user", "content": "I want a refund..." }],
+      "output": [{ "role": "assistant", "content": "I'd be happy to help..." }],
+      "expected_behavior": "Agent should ask for order details...",
+      "success": true,
+      "evaluation": {
+        "overall_pass": true,
+        "scorer_outputs": {
+          "relevance": { "score": 0.92, "reasoning": "Response directly addresses refund request" },
+          "faithfulness": { "score": 0.88, "reasoning": "All claims supported by context" }
+        }
+      },
+      "metrics": {
+        "latency_ms": 1240,
+        "tokens": { "input": 156, "output": 89 },
+        "cost_usd": 0.0034
+      },
+      "trace_id": "trace_ghi789"
+    }
+  ],
+  "summary": {
+    "turns_passed": 2,
+    "turns_failed": 1,
+    "avg_latency_ms": 1450,
+    "total_cost_usd": 0.0102
+  }
+}
+```
+</ResponseExample>

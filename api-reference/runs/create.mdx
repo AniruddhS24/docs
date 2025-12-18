@@ -1,0 +1,86 @@
+---
+title: "Create Run"
+api: "POST /v1/runs"
+description: "Execute a test run"
+---
+
+Execute one or more test cases against an agent. Supports running by test case ID, multiple IDs, or tags.
+
+<ParamField body="test_case_id" type="string">
+  Single test case ID to run
+</ParamField>
+
+<ParamField body="test_case_ids" type="array">
+  Multiple test case IDs to run
+</ParamField>
+
+<ParamField body="tags" type="array">
+  Run all test cases with these tags
+</ParamField>
+
+<ParamField body="agent_id" type="string">
+  Override agent for comparison testing
+</ParamField>
+
+<ParamField body="config" type="object">
+  Run configuration
+  <Expandable title="properties">
+    <ParamField body="parallel" type="boolean">
+      Run test cases in parallel (default: true)
+    </ParamField>
+    <ParamField body="max_retries" type="integer">
+      Maximum retry attempts on failure (default: 0)
+    </ParamField>
+    <ParamField body="timeout_ms" type="integer">
+      Timeout per turn in milliseconds (default: 30000)
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="run_id" type="string" required>
+  Unique run identifier
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Run status: `queued`, `running`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="test_case_count" type="integer" required>
+  Number of test cases in this run
+</ResponseField>
+
+<ResponseField name="estimated_duration_s" type="integer" required>
+  Estimated duration in seconds
+</ResponseField>
+
+<ResponseField name="webhook_url" type="string" required>
+  WebSocket URL for real-time progress streaming
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/runs \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "test_case_id": "tc_xyz789",
+    "config": {
+      "parallel": true,
+      "max_retries": 2,
+      "timeout_ms": 30000
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "run_id": "run_def456",
+  "status": "queued",
+  "test_case_count": 1,
+  "estimated_duration_s": 45,
+  "webhook_url": "wss://api.playgent.com/v1/runs/run_def456/stream"
+}
+```
+</ResponseExample>

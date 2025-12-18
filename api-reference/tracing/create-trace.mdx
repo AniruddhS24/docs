@@ -1,0 +1,72 @@
+---
+title: "Create Trace"
+api: "POST /v1/traces"
+description: "Start a new trace for agent execution"
+---
+
+Start a new trace to capture detailed execution spans. Called by the SDK at agent invocation start.
+
+<ParamField body="agent_id" type="string" required>
+  Agent being traced
+</ParamField>
+
+<ParamField body="run_id" type="string">
+  Link trace to a test run (optional)
+</ParamField>
+
+<ParamField body="input" type="object" required>
+  Initial input to the agent
+  <Expandable title="properties">
+    <ParamField body="messages" type="array">
+      Input messages
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Additional metadata
+  <Expandable title="properties">
+    <ParamField body="session_id" type="string">
+      Session identifier
+    </ParamField>
+    <ParamField body="user_id" type="string">
+      User identifier
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="trace_id" type="string" required>
+  Unique trace identifier
+</ResponseField>
+
+<ResponseField name="root_span_id" type="string" required>
+  Root span identifier for the trace
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/traces \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_id": "agent_abc123",
+    "run_id": "run_def456",
+    "input": {
+      "messages": [{ "role": "user", "content": "What is your refund policy?" }]
+    },
+    "metadata": {
+      "session_id": "sess_123",
+      "user_id": "user_456"
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "trace_id": "trace_ghi789",
+  "root_span_id": "span_jkl012"
+}
+```
+</ResponseExample>

@@ -1,0 +1,167 @@
+---
+title: "Create Experiment"
+api: "POST /v1/experiments"
+description: "Create an A/B experiment comparing two configurations"
+---
+
+Create an A/B experiment to compare different agent configurations with statistical analysis and recommendations.
+
+<ParamField body="name" type="string" required>
+  Experiment name
+</ParamField>
+
+<ParamField body="agent_id" type="string" required>
+  Base agent for the experiment
+</ParamField>
+
+<ParamField body="variants" type="array" required>
+  Experiment variants (minimum 2)
+  <Expandable title="variant object">
+    <ParamField body="name" type="string" required>
+      Variant name (e.g., "control", "treatment")
+    </ParamField>
+    <ParamField body="config" type="object" required>
+      Variant configuration
+      <Expandable title="properties">
+        <ParamField body="system_prompt" type="string">
+          Override system prompt
+        </ParamField>
+        <ParamField body="model" type="string">
+          Override model
+        </ParamField>
+        <ParamField body="temperature" type="number">
+          Override temperature
+        </ParamField>
+      </Expandable>
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="test_case_ids" type="array" required>
+  Test cases to run in the experiment
+</ParamField>
+
+<ParamField body="metrics" type="array" required>
+  Metrics to measure (e.g., "relevance", "faithfulness", "latency_ms")
+</ParamField>
+
+<ParamField body="config" type="object">
+  Experiment configuration
+  <Expandable title="properties">
+    <ParamField body="runs_per_variant" type="integer">
+      Runs per variant for statistical power (default: 10)
+    </ParamField>
+    <ParamField body="randomize" type="boolean">
+      Randomize run order (default: true)
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="experiment_id" type="string" required>
+  Experiment identifier
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Status: `pending`, `running`, `completed`
+</ResponseField>
+
+<ResponseField name="results" type="object">
+  Results per variant (when completed)
+  <Expandable title="variant result">
+    <ResponseField name="runs" type="integer">
+      Number of runs
+    </ResponseField>
+    <ResponseField name="pass_rate" type="number">
+      Pass rate
+    </ResponseField>
+    <ResponseField name="avg_scores" type="object">
+      Average scores per metric
+    </ResponseField>
+    <ResponseField name="avg_latency_ms" type="integer">
+      Average latency
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="statistical_analysis" type="object">
+  Statistical analysis (when completed)
+  <Expandable title="properties">
+    <ResponseField name="winner" type="string">
+      Winning variant
+    </ResponseField>
+    <ResponseField name="confidence" type="number">
+      Confidence level (0-1)
+    </ResponseField>
+    <ResponseField name="p_value" type="number">
+      P-value
+    </ResponseField>
+    <ResponseField name="effect_size" type="object">
+      Effect sizes per metric
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="recommendation" type="string">
+  Human-readable recommendation
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/experiments \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "System Prompt v2 Test",
+    "agent_id": "agent_abc123",
+    "variants": [
+      {
+        "name": "control",
+        "config": { "system_prompt": "You are a helpful agent..." }
+      },
+      {
+        "name": "treatment",
+        "config": { "system_prompt": "You are a customer support agent for Acme Corp..." }
+      }
+    ],
+    "test_case_ids": ["tc_1", "tc_2", "tc_3"],
+    "metrics": ["relevance", "faithfulness", "latency_ms"],
+    "config": {
+      "runs_per_variant": 10,
+      "randomize": true
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "experiment_id": "exp_yza567",
+  "status": "completed",
+  "results": {
+    "control": {
+      "runs": 10,
+      "pass_rate": 0.70,
+      "avg_scores": { "relevance": 0.85, "faithfulness": 0.82 },
+      "avg_latency_ms": 2340
+    },
+    "treatment": {
+      "runs": 10,
+      "pass_rate": 0.90,
+      "avg_scores": { "relevance": 0.91, "faithfulness": 0.94 },
+      "avg_latency_ms": 2180
+    }
+  },
+  "statistical_analysis": {
+    "winner": "treatment",
+    "confidence": 0.95,
+    "p_value": 0.023,
+    "effect_size": {
+      "pass_rate": "+28.6%",
+      "faithfulness": "+14.6%"
+    }
+  },
+  "recommendation": "Treatment variant shows statistically significant improvement. Recommend deploying."
+}
+```
+</ResponseExample>

@@ -1,0 +1,115 @@
+---
+title: "Get Agent Stats"
+api: "GET /v1/agents/{agent_id}/stats"
+description: "Get comprehensive performance statistics for an agent"
+---
+
+Retrieve detailed performance metrics, pass rates, and failure analysis for an agent.
+
+<ParamField path="agent_id" type="string" required>
+  Unique identifier for the agent
+</ParamField>
+
+<ResponseField name="agent_id" type="string" required>
+  Agent identifier
+</ResponseField>
+
+<ResponseField name="total_runs" type="integer" required>
+  Total number of test runs
+</ResponseField>
+
+<ResponseField name="total_turns" type="integer" required>
+  Total number of turns across all runs
+</ResponseField>
+
+<ResponseField name="pass_rate" type="number" required>
+  Overall pass rate (0-1)
+</ResponseField>
+
+<ResponseField name="avg_latency_ms" type="integer" required>
+  Average response latency in milliseconds
+</ResponseField>
+
+<ResponseField name="avg_token_usage" type="object" required>
+  Average token usage per turn
+  <Expandable title="properties">
+    <ResponseField name="input" type="integer">
+      Average input tokens
+    </ResponseField>
+    <ResponseField name="output" type="integer">
+      Average output tokens
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="scorer_breakdown" type="object" required>
+  Statistics per scorer
+  <Expandable title="properties">
+    <ResponseField name="[scorer_name]" type="object">
+      <Expandable title="properties">
+        <ResponseField name="avg" type="number">
+          Average score
+        </ResponseField>
+        <ResponseField name="min" type="number">
+          Minimum score
+        </ResponseField>
+        <ResponseField name="max" type="number">
+          Maximum score
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="trend_7d" type="object" required>
+  7-day performance trend
+  <Expandable title="properties">
+    <ResponseField name="pass_rate_delta" type="number">
+      Change in pass rate
+    </ResponseField>
+    <ResponseField name="latency_delta_ms" type="integer">
+      Change in latency
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="top_failure_reasons" type="array" required>
+  Most common failure reasons
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.playgent.com/v1/agents/agent_abc123/stats \
+  -H "Authorization: Bearer your-api-key"
+```
+
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "agent_id": "agent_abc123",
+  "total_runs": 156,
+  "total_turns": 423,
+  "pass_rate": 0.847,
+  "avg_latency_ms": 2340,
+  "avg_token_usage": {
+    "input": 450,
+    "output": 320
+  },
+  "scorer_breakdown": {
+    "relevance": { "avg": 0.89, "min": 0.45, "max": 1.0 },
+    "faithfulness": { "avg": 0.92, "min": 0.71, "max": 1.0 }
+  },
+  "trend_7d": {
+    "pass_rate_delta": 0.05,
+    "latency_delta_ms": -120
+  },
+  "top_failure_reasons": [
+    { "reason": "Hallucination detected", "count": 12 },
+    { "reason": "Off-topic response", "count": 8 }
+  ]
+}
+```
+</ResponseExample>

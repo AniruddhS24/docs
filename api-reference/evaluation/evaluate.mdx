@@ -1,0 +1,563 @@
+---
+title: "Evaluate"
+api: "POST /v1/evaluate"
+description: "Run comprehensive evaluation with 20+ built-in metrics including RAG, agentic, and multi-turn evaluations"
+---
+
+Evaluate agent responses using Playgent's comprehensive suite of evaluation metrics. No setup required - access industry-standard RAG metrics (RAGAS), agentic workflow evaluations, multi-turn conversation analysis, and custom LLM-as-judge evaluations out of the box.
+
+## 🎯 Built-in Evaluation Metrics
+
+Playgent offers **27 evaluation metrics** across five categories:
+
+### Custom Evaluations
+
+<AccordionGroup>
+  <Accordion title="Playval" icon="scale-balanced">
+    **General-purpose LLM-as-judge evaluation** Evaluates response quality using
+    a customizable rubric with GPT-4. Perfect for domain-specific quality
+    assessment when standard metrics don't apply. - Configurable evaluation
+    criteria - Detailed reasoning output - Score from 0-1
+  </Accordion>
+</AccordionGroup>
+
+### RAG (Retrieval-Augmented Generation)
+
+<AccordionGroup>
+  <Accordion title="Answer Relevancy" icon="bullseye">
+    Measures how well the response addresses the user's question. Penalizes
+    incomplete or off-topic answers.
+  </Accordion>
+
+{" "}
+<Accordion title="Faithfulness" icon="shield-check">
+  Ensures all claims in the response are supported by the provided context.
+  Detects hallucinations and unsupported statements.
+</Accordion>
+
+{" "}
+<Accordion title="Contextual Precision" icon="crosshairs">
+  Evaluates whether relevant context chunks are ranked higher than irrelevant
+  ones. Measures retrieval quality.
+</Accordion>
+
+{" "}
+<Accordion title="Contextual Recall" icon="list-check">
+  Checks if all necessary information from the ground truth is present in the
+  retrieved context.
+</Accordion>
+
+  <Accordion title="Contextual Relevancy" icon="filter">
+    Measures the proportion of relevant information in the retrieved context.
+    Penalizes noisy or irrelevant chunks.
+  </Accordion>
+</AccordionGroup>
+
+### Agentic Workflows
+
+<AccordionGroup>
+  <Accordion title="Task Completion" icon="circle-check">
+    Evaluates whether the agent successfully completed the requested task
+    end-to-end.
+  </Accordion>
+
+{" "}
+<Accordion title="Tool Correctness" icon="wrench">
+  Verifies that the agent selected and executed the correct tools for the task.
+</Accordion>
+
+{" "}
+<Accordion title="Argument Correctness" icon="code">
+  Checks if tool/function arguments are accurate and properly formatted.
+</Accordion>
+
+{" "}
+<Accordion title="Step Efficiency" icon="gauge-high">
+  Measures if the agent completed the task with minimal unnecessary steps.
+</Accordion>
+
+{" "}
+<Accordion title="Plan Adherence" icon="list-timeline">
+  Evaluates how well the agent followed its planned sequence of actions.
+</Accordion>
+
+  <Accordion title="Plan Quality" icon="diagram-project">
+    Assesses the quality of the agent's initial plan before execution.
+  </Accordion>
+</AccordionGroup>
+
+### Safety & Security
+
+<AccordionGroup>
+  <Accordion title="Bias" icon="scale-unbalanced">
+    Detects biased language or unfair treatment based on protected characteristics (race, gender, religion, etc.).
+  </Accordion>
+
+{" "}
+<Accordion title="Toxicity" icon="skull-crossbones">
+  Identifies toxic, offensive, or harmful language in responses.
+</Accordion>
+
+{" "}
+<Accordion title="Non-Advice" icon="ban">
+  Ensures the agent doesn't provide advice in domains requiring professional
+  expertise (legal, medical, financial).
+</Accordion>
+
+{" "}
+<Accordion title="Misuse" icon="triangle-exclamation">
+  Detects attempts to misuse the agent for harmful purposes (disinformation,
+  illegal activities, etc.).
+</Accordion>
+
+{" "}
+<Accordion title="PII Leakage" icon="user-lock">
+  Checks if the response inappropriately reveals personally identifiable
+  information (emails, phone numbers, addresses, SSNs).
+</Accordion>
+
+  <Accordion title="Role Violation" icon="user-shield">
+    Ensures the agent doesn't break character or violate system-level instructions.
+  </Accordion>
+</AccordionGroup>
+
+### Multi-Turn Conversations
+
+<AccordionGroup>
+  <Accordion title="Turn Relevancy" icon="message">
+    Evaluates if each turn stays relevant to the ongoing conversation.
+  </Accordion>
+
+{" "}
+<Accordion title="Role Adherence" icon="user-tie">
+  Checks if the agent maintains its assigned persona and role throughout the
+  conversation.
+</Accordion>
+
+{" "}
+<Accordion title="Knowledge Retention" icon="brain">
+  Measures if the agent remembers and references information from earlier turns.
+</Accordion>
+
+{" "}
+<Accordion title="Conversation Completeness" icon="comments">
+  Evaluates if all aspects of the user's multi-part query were addressed across
+  turns.
+</Accordion>
+
+{" "}
+<Accordion title="Goal Accuracy" icon="target">
+  Assesses whether the conversation achieves the user's stated goal by the end.
+</Accordion>
+
+{" "}
+<Accordion title="Tool Use" icon="toolbox">
+  Evaluates appropriate tool usage throughout the multi-turn interaction.
+</Accordion>
+
+{" "}
+<Accordion title="Topic Adherence" icon="bookmark">
+  Checks if the conversation stays on-topic without unnecessary tangents.
+</Accordion>
+
+{" "}
+<Accordion title="Turn Faithfulness" icon="handshake">
+  Per-turn version of faithfulness - ensures each response is grounded in
+  context.
+</Accordion>
+
+{" "}
+<Accordion title="Turn Contextual Precision" icon="bullseye-arrow">
+  Evaluates contextual precision for each individual turn in the conversation.
+</Accordion>
+
+  <Accordion title="Turn Contextual Recall" icon="clock-rotate-left">
+    Measures contextual recall at each turn of the conversation.
+  </Accordion>
+</AccordionGroup>
+
+## Parameters
+
+<ParamField body="turn_id" type="string">
+  Evaluate an existing turn by ID
+</ParamField>
+
+<ParamField body="input" type="string">
+  User input (for ad-hoc evaluation)
+</ParamField>
+
+<ParamField body="output" type="string">
+  Agent output to evaluate
+</ParamField>
+
+<ParamField body="expected_behavior" type="string">
+  Description of expected behavior (used by Playval and other custom metrics)
+</ParamField>
+
+<ParamField body="context" type="array">
+  Context documents for RAG evaluation metrics
+</ParamField>
+
+<ParamField body="ground_truth" type="string">
+  Ground truth answer for correctness evaluation
+</ParamField>
+
+<ParamField body="conversation_history" type="array">
+  Previous turns for multi-turn evaluation metrics
+  <Expandable title="turn object">
+    <ParamField body="role" type="string">
+      `user` or `assistant`
+    </ParamField>
+    <ParamField body="content" type="string">
+      Turn content
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="agent_plan" type="string">
+  Agent's planned steps (for agentic metrics like plan_adherence)
+</ParamField>
+
+<ParamField body="tool_calls" type="array">
+  Tool calls made by the agent (for agentic metrics)
+  <Expandable title="tool call object">
+    <ParamField body="name" type="string">
+      Tool name
+    </ParamField>
+    <ParamField body="arguments" type="object">
+      Tool arguments
+    </ParamField>
+    <ParamField body="result" type="any">
+      Tool result
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="scorers" type="array" required>
+  Array of metric names to evaluate. Choose from: **Custom**: `playval` **RAG**:
+  `answer_relevancy`, `faithfulness`, `contextual_precision`,
+  `contextual_recall`, `contextual_relevancy` **Safety**: `bias`, `toxicity`,
+  `non_advice`, `misuse`, `pii_leakage`, `role_violation` **Agentic**:
+  `task_completion`, `tool_correctness`, `argument_correctness`,
+  `step_efficiency`, `plan_adherence`, `plan_quality` **Multi-Turn**:
+  `turn_relevancy`, `role_adherence`, `knowledge_retention`,
+  `conversation_completeness`, `goal_accuracy`, `tool_use`, `topic_adherence`,
+  `turn_faithfulness`, `turn_contextual_precision`, `turn_contextual_recall` Or
+  use custom scorer IDs created via [Create Custom
+  Scorer](/api-reference/evaluation/create-custom-scorer)
+</ParamField>
+
+<ParamField body="threshold" type="number">
+  Minimum passing score (default: 0.7)
+</ParamField>
+
+## Response
+
+<ResponseField name="evaluation_id" type="string" required>
+  Unique evaluation identifier
+</ResponseField>
+
+<ResponseField name="overall_pass" type="boolean" required>
+  Whether all scorers passed the threshold
+</ResponseField>
+
+<ResponseField name="results" type="object" required>
+  Per-scorer results
+  <Expandable title="scorer result">
+    <ResponseField name="score" type="number">
+      Score (0-1)
+    </ResponseField>
+    <ResponseField name="pass" type="boolean">
+      Pass/fail based on threshold
+    </ResponseField>
+    <ResponseField name="reasoning" type="string">
+      Detailed explanation of the score
+    </ResponseField>
+    <ResponseField name="metadata" type="object">
+      Additional metric-specific data
+      <Expandable title="examples">
+        <ResponseField name="claims_analyzed" type="array">
+          For faithfulness: individual claims with evidence
+        </ResponseField>
+        <ResponseField name="unsupported_claims" type="array">
+          For faithfulness: claims without supporting context
+        </ResponseField>
+        <ResponseField name="tools_used" type="array">
+          For tool_correctness: tools that were called
+        </ResponseField>
+        <ResponseField name="missing_steps" type="array">
+          For plan_adherence: steps that were skipped
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.playgent.com/v1/evaluate \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "What is your refund policy?",
+    "output": "Our refund policy allows returns within 30 days of purchase for a full refund.",
+    "expected_behavior": "Should accurately describe the refund policy",
+    "context": ["Refund Policy Doc: Returns accepted within 30 days of purchase for full refund. Excludes sale items."],
+    "ground_truth": "Returns are accepted within 30 days of purchase for a full refund.",
+    "scorers": [
+      "answer_relevancy",
+      "faithfulness",
+      "contextual_relevancy",
+      "bias",
+      "toxicity"
+    ],
+    "threshold": 0.8
+  }'
+```
+
+```python Python
+from playgent import Playgent
+
+client = Playgent(api_key="your-api-key")
+
+evaluation = client.evaluate(
+    input="What is your refund policy?",
+    output="Our refund policy allows returns within 30 days...",
+    expected_behavior="Should accurately describe the refund policy",
+    context=["Refund Policy Doc: Returns accepted within 30 days..."],
+    ground_truth="Returns are accepted within 30 days for a full refund.",
+    scorers=[
+        "answer_relevancy",
+        "faithfulness",
+        "contextual_relevancy",
+        "bias",
+        "toxicity"
+    ],
+    threshold=0.8
+)
+
+print(f"Overall pass: {evaluation.overall_pass}")
+for scorer, result in evaluation.results.items():
+    print(f"{scorer}: {result.score:.2f} - {result.reasoning}")
+```
+
+```javascript TypeScript
+import { Playgent } from "playgent";
+
+const client = new Playgent({ apiKey: "your-api-key" });
+
+const evaluation = await client.evaluate({
+  input: "What is your refund policy?",
+  output: "Our refund policy allows returns within 30 days...",
+  expectedBehavior: "Should accurately describe the refund policy",
+  context: ["Refund Policy Doc: Returns accepted within 30 days..."],
+  groundTruth: "Returns are accepted within 30 days for a full refund.",
+  scorers: [
+    "answer_relevancy",
+    "faithfulness",
+    "contextual_relevancy",
+    "bias",
+    "toxicity",
+  ],
+  threshold: 0.8,
+});
+
+console.log(`Overall pass: ${evaluation.overallPass}`);
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Response
+{
+  "evaluation_id": "eval_mno345",
+  "overall_pass": true,
+  "results": {
+    "answer_relevancy": {
+      "score": 0.95,
+      "pass": true,
+      "reasoning": "Response directly addresses the question about refund policy. All key information is present and relevant.",
+      "metadata": {}
+    },
+    "faithfulness": {
+      "score": 0.88,
+      "pass": true,
+      "reasoning": "All claims in the response are supported by the provided context. The 30-day timeframe and full refund details match the policy document.",
+      "metadata": {
+        "claims_analyzed": [
+          {
+            "claim": "Returns within 30 days",
+            "supported": true,
+            "evidence": "Doc states 'Returns accepted within 30 days'"
+          },
+          {
+            "claim": "Full refund",
+            "supported": true,
+            "evidence": "Doc states 'for full refund'"
+          }
+        ],
+        "unsupported_claims": []
+      }
+    },
+    "contextual_relevancy": {
+      "score": 0.92,
+      "pass": true,
+      "reasoning": "The retrieved context is highly relevant. Contains the exact policy information needed to answer the question.",
+      "metadata": {
+        "relevant_chunks": 1,
+        "total_chunks": 1,
+        "relevancy_ratio": 1.0
+      }
+    },
+    "bias": {
+      "score": 1.0,
+      "pass": true,
+      "reasoning": "No biased language detected. Response treats all users fairly and does not discriminate based on protected characteristics.",
+      "metadata": {
+        "flags": []
+      }
+    },
+    "toxicity": {
+      "score": 1.0,
+      "pass": true,
+      "reasoning": "No toxic or harmful language detected. Response is professional and appropriate.",
+      "metadata": {
+        "toxicity_level": "none"
+      }
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Multi-Turn Example
+
+For evaluating multi-turn conversations, include conversation history:
+
+<RequestExample>
+
+```bash Multi-Turn Evaluation
+curl -X POST https://api.playgent.com/v1/evaluate \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "And what about international orders?",
+    "output": "For international orders, we offer returns within 30 days, but return shipping costs are the customer responsibility.",
+    "conversation_history": [
+      {
+        "role": "user",
+        "content": "What is your refund policy?"
+      },
+      {
+        "role": "assistant",
+        "content": "Our refund policy allows returns within 30 days..."
+      }
+    ],
+    "context": ["International Returns: 30 day return window. Customer pays return shipping."],
+    "scorers": [
+      "turn_relevancy",
+      "knowledge_retention",
+      "turn_faithfulness"
+    ]
+  }'
+```
+
+</RequestExample>
+
+## Agentic Evaluation Example
+
+For evaluating agentic workflows with tool use:
+
+<RequestExample>
+
+```bash Agentic Evaluation
+curl -X POST https://api.playgent.com/v1/evaluate \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "Book a flight to Paris and hotel for 3 nights",
+    "output": "I have booked your flight to Paris on Dec 20th and reserved a hotel for 3 nights (Dec 20-23).",
+    "agent_plan": "1. Search flights 2. Book selected flight 3. Search hotels 4. Book hotel",
+    "tool_calls": [
+      {
+        "name": "search_flights",
+        "arguments": {"destination": "Paris", "date": "2024-12-20"},
+        "result": {"flights": [...]}
+      },
+      {
+        "name": "book_flight",
+        "arguments": {"flight_id": "AF123"},
+        "result": {"status": "confirmed"}
+      },
+      {
+        "name": "search_hotels",
+        "arguments": {"city": "Paris", "checkin": "2024-12-20", "nights": 3},
+        "result": {"hotels": [...]}
+      },
+      {
+        "name": "book_hotel",
+        "arguments": {"hotel_id": "HTL456", "nights": 3},
+        "result": {"status": "confirmed"}
+      }
+    ],
+    "scorers": [
+      "task_completion",
+      "tool_correctness",
+      "argument_correctness",
+      "plan_adherence",
+      "step_efficiency"
+    ]
+  }'
+```
+
+</RequestExample>
+
+## Safety Evaluation Example
+
+For evaluating safety and compliance:
+
+<RequestExample>
+
+```bash Safety Evaluation
+curl -X POST https://api.playgent.com/v1/evaluate \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "Can you help me with my taxes?",
+    "output": "I can provide general information about tax filing, but I recommend consulting with a qualified tax professional for specific advice about your situation.",
+    "scorers": [
+      "bias",
+      "toxicity",
+      "non_advice",
+      "pii_leakage",
+      "role_violation"
+    ]
+  }'
+```
+
+```python Python
+evaluation = client.evaluate(
+    input="Can you help me with my taxes?",
+    output="I can provide general information, but consult a tax professional for specific advice.",
+    scorers=["bias", "toxicity", "non_advice", "pii_leakage", "role_violation"]
+)
+
+# All safety checks
+for scorer, result in evaluation.results.items():
+    if not result.pass:
+        print(f"⚠️ {scorer} failed: {result.reasoning}")
+```
+
+</RequestExample>
+
+## Notes
+
+- **RAG metrics** require `context` parameter
+- **Multi-turn metrics** require `conversation_history` parameter
+- **Agentic metrics** require `tool_calls` and optionally `agent_plan`
+- **Safety metrics** work on any input/output pair
+- Use `playval` for custom evaluation criteria via `expected_behavior`
+- Combine multiple metric types in a single request for comprehensive evaluation

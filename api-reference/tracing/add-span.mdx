@@ -1,0 +1,82 @@
+---
+title: "Add Span"
+api: "POST /v1/traces/{trace_id}/spans"
+description: "Add a span to an existing trace"
+---
+
+Add a span to capture a specific operation during agent execution (LLM call, tool invocation, retrieval, etc.).
+
+<ParamField path="trace_id" type="string" required>
+  Parent trace identifier
+</ParamField>
+
+<ParamField body="parent_span_id" type="string">
+  Parent span ID for nested spans
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Span name (e.g., "gpt-4-turbo call", "vector_search")
+</ParamField>
+
+<ParamField body="kind" type="string" required>
+  Span type: `llm`, `tool`, `retrieval`, `agent`, `chain`
+</ParamField>
+
+<ParamField body="input" type="object" required>
+  Span input data
+  <Expandable title="properties">
+    <ParamField body="messages" type="array">
+      For LLM spans: input messages
+    </ParamField>
+    <ParamField body="model" type="string">
+      For LLM spans: model name
+    </ParamField>
+    <ParamField body="temperature" type="number">
+      For LLM spans: temperature setting
+    </ParamField>
+    <ParamField body="query" type="string">
+      For retrieval spans: search query
+    </ParamField>
+    <ParamField body="tool_args" type="object">
+      For tool spans: tool arguments
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="start_time" type="string" required>
+  ISO 8601 timestamp when span started
+</ParamField>
+
+<ResponseField name="span_id" type="string" required>
+  Unique span identifier
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/traces/trace_ghi789/spans \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "parent_span_id": "span_jkl012",
+    "name": "gpt-4-turbo call",
+    "kind": "llm",
+    "input": {
+      "messages": [
+        { "role": "system", "content": "You are a helpful assistant." },
+        { "role": "user", "content": "What is your refund policy?" }
+      ],
+      "model": "gpt-4-turbo",
+      "temperature": 0.7
+    },
+    "start_time": "2024-12-16T10:00:00.123Z"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "span_id": "span_mno345"
+}
+```
+</ResponseExample>

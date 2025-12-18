@@ -1,0 +1,135 @@
+---
+title: "Batch Evaluate"
+api: "POST /v1/evaluate/batch"
+description: "Evaluate multiple outputs efficiently with 27 built-in metrics"
+---
+
+Run evaluation on multiple outputs in a single request. Ideal for batch processing, dataset evaluation, and regression testing. Uses the same [27 built-in metrics](/api-reference/evaluation/evaluate#-built-in-evaluation-metrics) as the single evaluation endpoint.
+
+<ParamField body="items" type="array" required>
+  Array of items to evaluate
+  <Expandable title="item object">
+    <ParamField body="input" type="string" required>
+      User input
+    </ParamField>
+    <ParamField body="output" type="string" required>
+      Agent output
+    </ParamField>
+    <ParamField body="context" type="array">
+      Context documents
+    </ParamField>
+    <ParamField body="ground_truth" type="string">
+      Ground truth
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="scorers" type="array" required>
+  Scorers to apply to all items. Choose from 27 built-in metrics: **Custom**:
+  `playval` **RAG**: `answer_relevancy`, `faithfulness`, `contextual_precision`,
+  `contextual_recall`, `contextual_relevancy` **Safety**: `bias`, `toxicity`,
+  `non_advice`, `misuse`, `pii_leakage`, `role_violation` **Agentic**:
+  `task_completion`, `tool_correctness`, `argument_correctness`,
+  `step_efficiency`, `plan_adherence`, `plan_quality` **Multi-Turn**:
+  `turn_relevancy`, `role_adherence`, `knowledge_retention`,
+  `conversation_completeness`, `goal_accuracy`, `tool_use`, `topic_adherence`,
+  `turn_faithfulness`, `turn_contextual_precision`, `turn_contextual_recall` Or
+  use custom scorer IDs from [Create Custom
+  Scorer](/api-reference/evaluation/create-custom-scorer)
+</ParamField>
+
+<ParamField body="config" type="object">
+  Batch configuration
+  <Expandable title="properties">
+    <ParamField body="parallel" type="boolean">
+      Run evaluations in parallel (default: true)
+    </ParamField>
+    <ParamField body="fail_fast" type="boolean">
+      Stop on first failure (default: false)
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ResponseField name="batch_id" type="string" required>
+  Batch identifier
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Batch status: `running`, `completed`, `failed`
+</ResponseField>
+
+<ResponseField name="results" type="array" required>
+  Per-item evaluation results
+</ResponseField>
+
+<ResponseField name="summary" type="object" required>
+  Batch summary statistics
+  <Expandable title="properties">
+    <ResponseField name="total" type="integer">
+      Total items
+    </ResponseField>
+    <ResponseField name="passed" type="integer">
+      Items that passed all scorers
+    </ResponseField>
+    <ResponseField name="failed" type="integer">
+      Items that failed
+    </ResponseField>
+    <ResponseField name="avg_scores" type="object">
+      Average scores per scorer
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/evaluate/batch \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      {
+        "input": "What is your refund policy?",
+        "output": "Returns accepted within 30 days.",
+        "context": ["Policy: 30 day returns"]
+      },
+      {
+        "input": "How do I track my order?",
+        "output": "You can track your order at tracking.example.com",
+        "context": ["Tracking available at tracking.example.com"]
+      }
+    ],
+    "scorers": ["faithfulness", "relevance"],
+    "config": {
+      "parallel": true,
+      "fail_fast": false
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "batch_id": "batch_stu678",
+  "status": "completed",
+  "results": [
+    {
+      "item_index": 0,
+      "overall_pass": true,
+      "scores": { "faithfulness": 0.95, "relevance": 0.92 }
+    },
+    {
+      "item_index": 1,
+      "overall_pass": true,
+      "scores": { "faithfulness": 0.88, "relevance": 0.90 }
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "avg_scores": { "faithfulness": 0.915, "relevance": 0.91 }
+  }
+}
+```
+</ResponseExample>

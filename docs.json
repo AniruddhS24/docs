@@ -8,19 +8,86 @@
     "dark": "#00B2CC"
   },
   "favicon": "/icon.png",
+  "api": {
+    "mdx": {
+      "server": "https://api.playgent.com",
+      "auth": {
+        "method": "bearer"
+      }
+    }
+  },
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Getting started",
-        "pages": ["index", "quickstart"]
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": ["index", "quickstart"]
+          }
+        ]
       },
       {
-        "group": "Providers",
-        "pages": ["providers/openai", "providers/anthropic"]
-      },
-      {
-        "group": "Examples",
-        "pages": ["examples/todo-list"]
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Agents",
+            "pages": [
+              "api-reference/agents/create",
+              "api-reference/agents/get-stats"
+            ]
+          },
+          {
+            "group": "Test Cases",
+            "pages": [
+              "api-reference/test-cases/create",
+              "api-reference/test-cases/generate"
+            ]
+          },
+          {
+            "group": "Test Runs",
+            "pages": ["api-reference/runs/create", "api-reference/runs/get"]
+          },
+          {
+            "group": "Tracing",
+            "pages": [
+              "api-reference/tracing/create-trace",
+              "api-reference/tracing/add-span",
+              "api-reference/tracing/update-span",
+              "api-reference/tracing/get-trace"
+            ]
+          },
+          {
+            "group": "Evaluation",
+            "pages": [
+              "api-reference/evaluation/evaluate",
+              "api-reference/evaluation/evaluate-batch",
+              "api-reference/evaluation/create-custom-scorer"
+            ]
+          },
+          {
+            "group": "Optimization",
+            "pages": [
+              "api-reference/optimization/optimize-prompt",
+              "api-reference/optimization/create-experiment"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": ["api-reference/webhooks/create"]
+          },
+          {
+            "group": "Analytics",
+            "pages": [
+              "api-reference/analytics/get-trends",
+              "api-reference/analytics/get-failure-analysis"
+            ]
+          }
+        ]
       }
     ]
   },
@@ -40,18 +107,6 @@
       "label": "Dashboard",
       "href": "https://playgent-dashboard.vercel.app"
     }
-  },
-  "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
   },
   "footer": {
     "socials": {

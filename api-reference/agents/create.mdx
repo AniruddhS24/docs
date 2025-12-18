@@ -1,0 +1,103 @@
+---
+title: "Create Agent"
+api: "POST /v1/agents"
+description: "Create a new agent configuration"
+---
+
+Create a new agent configuration with provider credentials and invocation settings.
+
+<ParamField body="name" type="string" required>
+  Name for the agent
+</ParamField>
+
+<ParamField body="provider" type="string" required>
+  LLM provider. Options: `openai`, `anthropic`, `bedrock`, `langchain`, `custom`
+</ParamField>
+
+<ParamField body="credentials" type="object">
+  Provider credentials (encrypted at rest)
+  <Expandable title="properties">
+    <ParamField body="OPENAI_API_KEY" type="string">
+      OpenAI API key
+    </ParamField>
+    <ParamField body="ANTHROPIC_API_KEY" type="string">
+      Anthropic API key
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="invocation" type="object">
+  Custom invocation configuration for calling your agent
+  <Expandable title="properties">
+    <ParamField body="method" type="string">
+      HTTP method (default: `POST`)
+    </ParamField>
+    <ParamField body="url" type="string">
+      Agent endpoint URL
+    </ParamField>
+    <ParamField body="headers" type="object">
+      Request headers
+    </ParamField>
+    <ParamField body="body_template" type="string">
+      Request body template with `{{ input }}` placeholder
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="system_prompt" type="string">
+  System prompt for the agent. Used for prompt optimization.
+</ParamField>
+
+<ParamField body="default_scorers" type="array">
+  Default scorers to use for evaluation. Options: `relevance`, `faithfulness`,
+  `safety`, `hallucination_score`
+</ParamField>
+
+<ResponseField name="id" type="string" required>
+  Unique agent identifier
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Agent name
+</ResponseField>
+
+<ResponseField name="provider" type="string" required>
+  LLM provider
+</ResponseField>
+
+<ResponseField name="created_at" type="string" required>
+  ISO 8601 timestamp
+</ResponseField>
+
+<ResponseField name="api_key" type="string" required>
+  Agent-specific API key for SDK authentication
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/agents \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Customer Support Agent",
+    "provider": "openai",
+    "credentials": {
+      "OPENAI_API_KEY": "sk-xxx..."
+    },
+    "system_prompt": "You are a helpful customer support agent...",
+    "default_scorers": ["relevance", "faithfulness", "safety"]
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "id": "agent_abc123",
+  "name": "Customer Support Agent",
+  "provider": "openai",
+  "created_at": "2024-12-16T10:00:00Z",
+  "api_key": "pk_live_xxx..."
+}
+```
+</ResponseExample>

@@ -1,0 +1,100 @@
+---
+title: "Get Failure Analysis"
+api: "GET /v1/analytics/failure-analysis"
+description: "Get intelligent failure analysis with patterns and suggestions"
+---
+
+Get intelligent analysis of test failures including categorization, common patterns, and actionable suggestions for improvement.
+
+<ParamField query="agent_id" type="string">
+  Filter by agent ID (optional)
+</ParamField>
+
+<ParamField query="period" type="string">
+  Time period to analyze (default: "30d")
+</ParamField>
+
+<ResponseField name="period" type="string" required>
+  Analysis period
+</ResponseField>
+
+<ResponseField name="total_failures" type="integer" required>
+  Total number of failures
+</ResponseField>
+
+<ResponseField name="failure_categories" type="array" required>
+  Categorized failures with analysis
+  <Expandable title="category object">
+    <ResponseField name="category" type="string">
+      Failure category
+    </ResponseField>
+    <ResponseField name="count" type="integer">
+      Number of failures
+    </ResponseField>
+    <ResponseField name="percentage" type="number">
+      Percentage of total failures
+    </ResponseField>
+    <ResponseField name="example_run_ids" type="array">
+      Example run IDs
+    </ResponseField>
+    <ResponseField name="common_patterns" type="array">
+      Identified patterns
+    </ResponseField>
+    <ResponseField name="suggested_fix" type="string">
+      Suggested fix
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl "https://api.playgent.com/v1/analytics/failure-analysis?agent_id=agent_abc123&period=30d" \
+  -H "Authorization: Bearer your-api-key"
+```
+
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "period": "30d",
+  "total_failures": 156,
+  "failure_categories": [
+    {
+      "category": "Hallucination",
+      "count": 45,
+      "percentage": 28.8,
+      "example_run_ids": ["run_1", "run_2"],
+      "common_patterns": [
+        "Made up order numbers not in context",
+        "Stated incorrect refund policy details"
+      ],
+      "suggested_fix": "Add explicit instruction: 'Only reference order numbers provided in the context'"
+    },
+    {
+      "category": "Off-topic Response",
+      "count": 32,
+      "percentage": 20.5,
+      "example_run_ids": ["run_3", "run_4"],
+      "common_patterns": [
+        "Discussed unrelated products",
+        "Provided information not asked for"
+      ],
+      "suggested_fix": "Add guardrail: 'Stay focused on the customer's specific question'"
+    },
+    {
+      "category": "Incomplete Response",
+      "count": 28,
+      "percentage": 17.9,
+      "example_run_ids": ["run_5", "run_6"],
+      "common_patterns": [
+        "Did not address all parts of multi-part questions",
+        "Missing follow-up information"
+      ],
+      "suggested_fix": "Add instruction: 'Ensure all parts of the user's question are addressed'"
+    }
+  ]
+}
+```
+</ResponseExample>

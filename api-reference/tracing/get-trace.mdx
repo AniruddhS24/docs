@@ -1,0 +1,121 @@
+---
+title: "Get Trace"
+api: "GET /v1/traces/{trace_id}"
+description: "Get full trace with all spans as a tree structure"
+---
+
+Retrieve the complete trace with all spans organized in a hierarchical tree structure.
+
+<ParamField path="trace_id" type="string" required>
+  Trace identifier
+</ParamField>
+
+<ResponseField name="trace_id" type="string" required>
+  Trace identifier
+</ResponseField>
+
+<ResponseField name="agent_id" type="string" required>
+  Associated agent ID
+</ResponseField>
+
+<ResponseField name="run_id" type="string">
+  Linked test run ID (if any)
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+  Trace status: `running`, `completed`, `error`
+</ResponseField>
+
+<ResponseField name="duration_ms" type="integer" required>
+  Total trace duration in milliseconds
+</ResponseField>
+
+<ResponseField name="total_cost_usd" type="number" required>
+  Total cost across all spans
+</ResponseField>
+
+<ResponseField name="spans" type="array" required>
+  Hierarchical span tree
+  <Expandable title="span object">
+    <ResponseField name="span_id" type="string">
+      Span identifier
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Span name
+    </ResponseField>
+    <ResponseField name="kind" type="string">
+      Span type
+    </ResponseField>
+    <ResponseField name="duration_ms" type="integer">
+      Duration
+    </ResponseField>
+    <ResponseField name="model" type="string">
+      Model used (LLM spans)
+    </ResponseField>
+    <ResponseField name="tokens" type="object">
+      Token usage
+    </ResponseField>
+    <ResponseField name="cost_usd" type="number">
+      Cost
+    </ResponseField>
+    <ResponseField name="children" type="array">
+      Nested child spans
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.playgent.com/v1/traces/trace_ghi789 \
+  -H "Authorization: Bearer your-api-key"
+```
+
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "trace_id": "trace_ghi789",
+  "agent_id": "agent_abc123",
+  "run_id": "run_def456",
+  "status": "completed",
+  "duration_ms": 4560,
+  "total_cost_usd": 0.0234,
+  "spans": [
+    {
+      "span_id": "span_jkl012",
+      "name": "agent_execution",
+      "kind": "agent",
+      "duration_ms": 4560,
+      "children": [
+        {
+          "span_id": "span_mno345",
+          "name": "gpt-4-turbo call",
+          "kind": "llm",
+          "model": "gpt-4-turbo",
+          "tokens": { "input": 234, "output": 156 },
+          "cost_usd": 0.0089,
+          "duration_ms": 1234
+        },
+        {
+          "span_id": "span_pqr678",
+          "name": "search_knowledge_base",
+          "kind": "tool",
+          "duration_ms": 456,
+          "children": [
+            {
+              "span_id": "span_stu901",
+              "name": "embedding generation",
+              "kind": "llm",
+              "model": "text-embedding-3-small",
+              "duration_ms": 89
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+</ResponseExample>

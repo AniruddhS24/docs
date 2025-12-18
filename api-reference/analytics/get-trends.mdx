@@ -1,0 +1,119 @@
+---
+title: "Get Trends"
+api: "GET /v1/analytics/trends"
+description: "Get performance trends over time"
+---
+
+Retrieve performance metrics and trends for an agent over a specified time period.
+
+<ParamField query="agent_id" type="string">
+  Filter by agent ID (optional)
+</ParamField>
+
+<ParamField query="period" type="string" required>
+  Time period (e.g., "7d", "30d", "90d")
+</ParamField>
+
+<ParamField query="granularity" type="string">
+  Data granularity: `hour`, `day`, `week` (default: day)
+</ParamField>
+
+<ParamField query="metrics" type="string">
+  Comma-separated metrics to include: `pass_rate`, `avg_faithfulness`,
+  `avg_relevance`, `avg_latency_ms`, `total_cost_usd`
+</ParamField>
+
+<ResponseField name="period" type="object" required>
+  Time period
+  <Expandable title="properties">
+    <ResponseField name="start" type="string">
+      Start date
+    </ResponseField>
+    <ResponseField name="end" type="string">
+      End date
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="data_points" type="array" required>
+  Time series data
+  <Expandable title="data point">
+    <ResponseField name="date" type="string">
+      Date
+    </ResponseField>
+    <ResponseField name="runs" type="integer">
+      Number of runs
+    </ResponseField>
+    <ResponseField name="pass_rate" type="number">
+      Pass rate
+    </ResponseField>
+    <ResponseField name="avg_faithfulness" type="number">
+      Average faithfulness score
+    </ResponseField>
+    <ResponseField name="avg_latency_ms" type="integer">
+      Average latency
+    </ResponseField>
+    <ResponseField name="total_cost_usd" type="number">
+      Total cost
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="summary" type="object" required>
+  Period summary
+  <Expandable title="properties">
+    <ResponseField name="total_runs" type="integer">
+      Total runs
+    </ResponseField>
+    <ResponseField name="overall_pass_rate" type="number">
+      Overall pass rate
+    </ResponseField>
+    <ResponseField name="trend" type="string">
+      Trend: `improving`, `stable`, `declining`
+    </ResponseField>
+    <ResponseField name="cost_total_usd" type="number">
+      Total cost
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl "https://api.playgent.com/v1/analytics/trends?agent_id=agent_abc123&period=30d&granularity=day&metrics=pass_rate,avg_faithfulness,avg_latency_ms,total_cost_usd" \
+  -H "Authorization: Bearer your-api-key"
+```
+
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "period": { "start": "2024-11-16", "end": "2024-12-16" },
+  "data_points": [
+    {
+      "date": "2024-11-16",
+      "runs": 45,
+      "pass_rate": 0.78,
+      "avg_faithfulness": 0.84,
+      "avg_latency_ms": 2450,
+      "total_cost_usd": 1.23
+    },
+    {
+      "date": "2024-11-17",
+      "runs": 52,
+      "pass_rate": 0.81,
+      "avg_faithfulness": 0.86,
+      "avg_latency_ms": 2380,
+      "total_cost_usd": 1.45
+    }
+  ],
+  "summary": {
+    "total_runs": 1234,
+    "overall_pass_rate": 0.85,
+    "trend": "improving",
+    "cost_total_usd": 45.67
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,102 @@
+---
+title: "Create Webhook"
+api: "POST /v1/webhooks"
+description: "Register a webhook for events"
+---
+
+Register a webhook endpoint to receive real-time notifications for test runs, evaluations, and optimizations.
+
+## Supported Events
+
+| Event                    | Description                    |
+| ------------------------ | ------------------------------ |
+| `run.completed`          | Test run finished successfully |
+| `run.failed`             | Test run failed                |
+| `evaluation.completed`   | Evaluation finished            |
+| `optimization.completed` | Prompt optimization finished   |
+
+<ParamField body="url" type="string" required>
+  Webhook endpoint URL (must be HTTPS)
+</ParamField>
+
+<ParamField body="events" type="array" required>
+  Events to subscribe to
+</ParamField>
+
+<ParamField body="secret" type="string" required>
+  Secret for signature verification (use for validating webhook authenticity)
+</ParamField>
+
+<ResponseField name="webhook_id" type="string" required>
+  Webhook identifier
+</ResponseField>
+
+<ResponseField name="url" type="string" required>
+  Webhook URL
+</ResponseField>
+
+<ResponseField name="events" type="array" required>
+  Subscribed events
+</ResponseField>
+
+<ResponseField name="active" type="boolean" required>
+  Whether webhook is active
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.playgent.com/v1/webhooks \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-app.com/webhooks/playgent",
+    "events": ["run.completed", "run.failed", "evaluation.completed", "optimization.completed"],
+    "secret": "whsec_your_secret_key"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "webhook_id": "wh_abc123",
+  "url": "https://your-app.com/webhooks/playgent",
+  "events": ["run.completed", "run.failed", "evaluation.completed", "optimization.completed"],
+  "active": true
+}
+```
+</ResponseExample>
+
+## Webhook Payload
+
+When an event occurs, Playgent sends a POST request to your webhook URL:
+
+```json
+{
+  "event": "run.failed",
+  "timestamp": "2024-12-16T10:00:00Z",
+  "data": {
+    "run_id": "run_def456",
+    "test_case_id": "tc_xyz789",
+    "test_case_name": "Refund Request Flow",
+    "failure_summary": "Turn 2 failed: Faithfulness score 0.45 below threshold 0.70"
+  }
+}
+```
+
+## Verifying Signatures
+
+Verify webhook authenticity using the `X-Playgent-Signature` header:
+
+```python
+import hmac
+import hashlib
+
+def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)
+```

@@ -1,33 +1,97 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "Complete reference for the Playgent API"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+All API requests should be made to:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+```
+https://api.playgent.com/v1
+```
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+The Playgent API uses Bearer token authentication. Include your API key in the `Authorization` header:
+
+```bash
+Authorization: Bearer your-api-key
+```
+
+Get your API key from the [dashboard](https://playgent-dashboard.vercel.app).
+
+## Response Format
+
+All responses are JSON. Successful responses include the requested data:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "id": "agent_abc123",
+  "name": "My Agent",
+  "created_at": "2024-12-16T10:00:00Z"
+}
 ```
+
+Error responses include an error code and message:
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Missing required field: name"
+  }
+}
+```
+
+## Rate Limits
+
+- **Standard**: 100 requests/minute
+- **Pro**: 1000 requests/minute
+
+Rate limit headers are included in all responses:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1702728000
+```
+
+## API Sections
+
+<CardGroup cols={2}>
+  <Card title="Agents" icon="robot" href="/api-reference/agents/create">
+    Create and manage agent configurations
+  </Card>
+  <Card
+    title="Test Cases"
+    icon="list-check"
+    href="/api-reference/test-cases/create"
+  >
+    Define test scenarios for your agents
+  </Card>
+  <Card title="Test Runs" icon="play" href="/api-reference/runs/create">
+    Execute tests and get results
+  </Card>
+  <Card
+    title="Tracing"
+    icon="timeline"
+    href="/api-reference/tracing/create-trace"
+  >
+    Instrument agent execution with spans
+  </Card>
+  <Card
+    title="Evaluation"
+    icon="chart-simple"
+    href="/api-reference/evaluation/evaluate"
+  >
+    Run evaluations with 27 built-in metrics (RAG, safety, agentic, multi-turn)
+  </Card>
+  <Card
+    title="Optimization"
+    icon="wand-magic-sparkles"
+    href="/api-reference/optimization/optimize-prompt"
+  >
+    Optimize prompts and run A/B tests
+  </Card>
+</CardGroup>

@@ -5,71 +5,103 @@ description: "Get started with Playgent in minutes"
 
 ## Installation
 
-First, install Playgent via pip:
+Install the Playgent SDK:
 
 ```bash
 pip install playgent
 ```
 
-## Step 1: Create an API key
+## Step 1: Get your API key
 
-Go to the [Playgent dashboard](https://playgent-dashboard.vercel.app) and create an API key.
+1. Go to the [Playgent dashboard](https://playgent-dashboard.vercel.app)
+2. Navigate to **Account** → **API Keys**
+3. Click **Create API Key** and save it securely
 
-1. Click on the "Account" button in the bottom left corner.
-2. Click on the "API Keys" tab.
-3. Click on the "Create API Key" button.
-4. Copy the API key and save it to a secure location.
+## Step 2: Create an agent
 
-## Step 2: Instrument your agent
-
-Wrap your LLM client and add the `@record` decorator to your agent functions to automatically track all interactions.
-
-Here's the basic pattern:
+Register your agent with Playgent:
 
 ```python
-from openai import OpenAI
-from playgent import record, wrap_openai
+from playgent import Playgent
 
-client = wrap_openai(OpenAI(), api_key="<PLAYGENT-API-KEY>")
+client = Playgent(api_key="your-api-key")
 
-@record
-def inference(user_input: str):
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": user_input}]
-    )
-    return response.choices[0].message.content
+agent = client.agents.create(
+    name="Customer Support Agent",
+    provider="openai",
+    system_prompt="You are a helpful customer support agent...",
+    default_scorers=["relevance", "faithfulness"]
+)
 ```
 
-That's it! The `@record` decorator marks the function as a Playgent trace. The `wrap_openai()` function will automatically track all OpenAI calls made using the wrapped client. This allows you to easily use other libraries with no vendor lock-in.
+## Step 3: Create a test case
 
-<Note>
-  You can also use the `PLAYGENT_API_KEY` environment variable to set the API
-  key.
-</Note>
+Define test cases for your agent:
 
-## Step 2: View traces and spans on the dashboard
+```python
+test_case = client.test_cases.create(
+    name="Refund Request",
+    agent_id=agent.id,
+    turns=[{
+        "input": {"text": "I want a refund for order #1234"},
+        "expected_behavior": "Agent should ask for order details",
+        "scorers": ["relevance", "completeness"]
+    }]
+)
+```
 
-Once your agent is instrumented, all traces and spans will appear in the [Playgent dashboard](https://playgent-dashboard.vercel.app)
+## Step 4: Run tests
 
-The dashboard provides:
+Execute your tests and get results:
 
-- **Automatic issue detection** - Playgent analyzes each trace to identify problems
-- **Issue clustering** - Similar issues are grouped together for easy prioritization
-- **Trace visualization** - See the full execution flow with all spans and events
-- **User interaction insights** - Understand exactly how users are interacting with your agent
+```python
+run = client.runs.create(test_case_id=test_case.id)
+
+# Get results
+result = client.runs.get(run.id)
+print(f"Pass rate: {result.summary.turns_passed}/{len(result.turns)}")
+```
+
+## Step 5: Evaluate with 27 metrics (optional)
+
+Run comprehensive evaluations using built-in RAG, safety, agentic, and multi-turn metrics:
+
+```python
+# Evaluate a single response
+evaluation = client.evaluate(
+    input="What is your refund policy?",
+    output="Returns accepted within 30 days for full refund.",
+    context=["Policy: 30 day returns for full refund"],
+    scorers=[
+        "answer_relevancy",  # RAG metric
+        "faithfulness",      # RAG metric
+        "bias",             # Safety metric
+        "toxicity"          # Safety metric
+    ]
+)
+
+print(f"Overall pass: {evaluation.overall_pass}")
+for scorer, result in evaluation.results.items():
+    print(f"{scorer}: {result.score:.2f}")
+```
+
+<Tip>
+  Playgent provides 27 built-in metrics including **RAG** (RAGAS), **safety
+  checks**, **agentic workflows**, and **multi-turn conversations**. [See all
+  metrics →](/api-reference/evaluation/evaluate#-built-in-evaluation-metrics)
+</Tip>
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="OpenAI Provider" icon="brain" href="/providers/openai">
-    Learn more about integrating with OpenAI
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Explore all available endpoints
   </Card>
   <Card
-    title="Anthropic Provider"
-    icon="message-bot"
-    href="/providers/anthropic"
+    title="27 Evaluation Metrics"
+    icon="chart-line"
+    href="/api-reference/evaluation/evaluate"
   >
-    Learn more about integrating with Anthropic
+    Explore RAG, safety, agentic, and multi-turn metrics
   </Card>
 </CardGroup>

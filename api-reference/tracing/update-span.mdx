@@ -1,0 +1,89 @@
+---
+title: "Update Span"
+api: "PATCH /v1/spans/{span_id}"
+description: "Complete a span with output and metrics"
+---
+
+Update a span with its output, timing, and metrics after the operation completes.
+
+<ParamField path="span_id" type="string" required>
+  Span identifier
+</ParamField>
+
+<ParamField body="output" type="object" required>
+  Span output data
+  <Expandable title="properties">
+    <ParamField body="content" type="string">
+      For LLM spans: response content
+    </ParamField>
+    <ParamField body="tool_calls" type="array">
+      For LLM spans: tool calls made
+    </ParamField>
+    <ParamField body="documents" type="array">
+      For retrieval spans: retrieved documents
+    </ParamField>
+    <ParamField body="result" type="any">
+      For tool spans: tool result
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="end_time" type="string" required>
+  ISO 8601 timestamp when span completed
+</ParamField>
+
+<ParamField body="tokens_input" type="integer">
+  Input tokens used (LLM spans)
+</ParamField>
+
+<ParamField body="tokens_output" type="integer">
+  Output tokens generated (LLM spans)
+</ParamField>
+
+<ParamField body="cost_usd" type="number">
+  Estimated cost in USD
+</ParamField>
+
+<ParamField body="status" type="string" required>
+  Span status: `completed` or `error`
+</ParamField>
+
+<ParamField body="error_message" type="string">
+  Error message if status is `error`
+</ParamField>
+
+<ResponseField name="span_id" type="string" required>
+  Updated span identifier
+</ResponseField>
+
+<ResponseField name="duration_ms" type="integer" required>
+  Calculated duration in milliseconds
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH https://api.playgent.com/v1/spans/span_mno345 \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "output": {
+      "content": "Our refund policy allows returns within 30 days...",
+      "tool_calls": []
+    },
+    "end_time": "2024-12-16T10:00:02.456Z",
+    "tokens_input": 234,
+    "tokens_output": 156,
+    "cost_usd": 0.0089,
+    "status": "completed"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json Response
+{
+  "span_id": "span_mno345",
+  "duration_ms": 2333
+}
+```
+</ResponseExample>
