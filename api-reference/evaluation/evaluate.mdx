@@ -8,7 +8,7 @@ Evaluate agent responses using Playgent's comprehensive suite of evaluation metr
 
 ## 🎯 Built-in Evaluation Metrics
 
-Playgent offers **27 evaluation metrics** across five categories:
+Playgent offers **29 evaluation metrics** across five categories:
 
 ### Custom Evaluations
 
@@ -30,18 +30,21 @@ Playgent offers **27 evaluation metrics** across five categories:
   </Accordion>
 
 {" "}
+
 <Accordion title="Faithfulness" icon="shield-check">
   Ensures all claims in the response are supported by the provided context.
   Detects hallucinations and unsupported statements.
 </Accordion>
 
 {" "}
+
 <Accordion title="Contextual Precision" icon="crosshairs">
   Evaluates whether relevant context chunks are ranked higher than irrelevant
   ones. Measures retrieval quality.
 </Accordion>
 
 {" "}
+
 <Accordion title="Contextual Recall" icon="list-check">
   Checks if all necessary information from the ground truth is present in the
   retrieved context.
@@ -62,21 +65,25 @@ Playgent offers **27 evaluation metrics** across five categories:
   </Accordion>
 
 {" "}
+
 <Accordion title="Tool Correctness" icon="wrench">
   Verifies that the agent selected and executed the correct tools for the task.
 </Accordion>
 
 {" "}
+
 <Accordion title="Argument Correctness" icon="code">
   Checks if tool/function arguments are accurate and properly formatted.
 </Accordion>
 
 {" "}
+
 <Accordion title="Step Efficiency" icon="gauge-high">
   Measures if the agent completed the task with minimal unnecessary steps.
 </Accordion>
 
 {" "}
+
 <Accordion title="Plan Adherence" icon="list-timeline">
   Evaluates how well the agent followed its planned sequence of actions.
 </Accordion>
@@ -94,23 +101,27 @@ Playgent offers **27 evaluation metrics** across five categories:
   </Accordion>
 
 {" "}
+
 <Accordion title="Toxicity" icon="skull-crossbones">
   Identifies toxic, offensive, or harmful language in responses.
 </Accordion>
 
 {" "}
+
 <Accordion title="Non-Advice" icon="ban">
   Ensures the agent doesn't provide advice in domains requiring professional
   expertise (legal, medical, financial).
 </Accordion>
 
 {" "}
+
 <Accordion title="Misuse" icon="triangle-exclamation">
   Detects attempts to misuse the agent for harmful purposes (disinformation,
   illegal activities, etc.).
 </Accordion>
 
 {" "}
+
 <Accordion title="PII Leakage" icon="user-lock">
   Checks if the response inappropriately reveals personally identifiable
   information (emails, phone numbers, addresses, SSNs).
@@ -129,50 +140,63 @@ Playgent offers **27 evaluation metrics** across five categories:
   </Accordion>
 
 {" "}
+
 <Accordion title="Role Adherence" icon="user-tie">
   Checks if the agent maintains its assigned persona and role throughout the
   conversation.
 </Accordion>
 
 {" "}
+
 <Accordion title="Knowledge Retention" icon="brain">
   Measures if the agent remembers and references information from earlier turns.
 </Accordion>
 
 {" "}
+
 <Accordion title="Conversation Completeness" icon="comments">
   Evaluates if all aspects of the user's multi-part query were addressed across
   turns.
 </Accordion>
 
 {" "}
+
 <Accordion title="Goal Accuracy" icon="target">
   Assesses whether the conversation achieves the user's stated goal by the end.
 </Accordion>
 
 {" "}
+
 <Accordion title="Tool Use" icon="toolbox">
   Evaluates appropriate tool usage throughout the multi-turn interaction.
 </Accordion>
 
 {" "}
+
 <Accordion title="Topic Adherence" icon="bookmark">
   Checks if the conversation stays on-topic without unnecessary tangents.
 </Accordion>
 
 {" "}
+
 <Accordion title="Turn Faithfulness" icon="handshake">
   Per-turn version of faithfulness - ensures each response is grounded in
   context.
 </Accordion>
 
 {" "}
+
 <Accordion title="Turn Contextual Precision" icon="bullseye-arrow">
   Evaluates contextual precision for each individual turn in the conversation.
 </Accordion>
 
-  <Accordion title="Turn Contextual Recall" icon="clock-rotate-left">
-    Measures contextual recall at each turn of the conversation.
+{" "}
+<Accordion title="Turn Contextual Recall" icon="clock-rotate-left">
+  Measures contextual recall at each turn of the conversation.
+</Accordion>
+
+  <Accordion title="Turn Contextual Relevancy" icon="filter-circle-xmark">
+    Evaluates contextual relevancy for each individual turn in the conversation.
   </Accordion>
 </AccordionGroup>
 
@@ -242,9 +266,9 @@ Playgent offers **27 evaluation metrics** across five categories:
   `step_efficiency`, `plan_adherence`, `plan_quality` **Multi-Turn**:
   `turn_relevancy`, `role_adherence`, `knowledge_retention`,
   `conversation_completeness`, `goal_accuracy`, `tool_use`, `topic_adherence`,
-  `turn_faithfulness`, `turn_contextual_precision`, `turn_contextual_recall` Or
-  use custom scorer IDs created via [Create Custom
-  Scorer](/api-reference/evaluation/create-custom-scorer)
+  `turn_faithfulness`, `turn_contextual_precision`, `turn_contextual_recall`,
+  `turn_contextual_relevancy` Or use custom scorer IDs created via [Create
+  Custom Scorer](/api-reference/evaluation/create-custom-scorer)
 </ParamField>
 
 <ParamField body="threshold" type="number">

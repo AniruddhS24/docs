@@ -1,0 +1,96 @@
+---
+title: "Agents"
+description: "Configuring and managing AI agents in Playgent"
+---
+
+# Agents
+
+An **Agent** is your AI system configuration in Playgent. It includes your LLM provider, credentials, system prompt, and default evaluation metrics.
+
+## Quick Start
+
+<CodeGroup>
+
+```python Python
+from playgent import Playgent
+
+client = Playgent(api_key="your-api-key")
+
+agent = client.agents.create(
+    name="Customer Support Agent",
+    provider="openai",
+    credentials={"OPENAI_API_KEY": "sk-xxx..."},
+    system_prompt="You are a helpful customer support agent for Acme Corp...",
+    default_scorers=["answer_relevancy", "faithfulness", "bias"]
+)
+```
+
+```typescript TypeScript
+import { Playgent } from "playgent";
+
+const client = new Playgent({ apiKey: "your-api-key" });
+
+const agent = await client.agents.create({
+  name: "Customer Support Agent",
+  provider: "openai",
+  credentials: { OPENAI_API_KEY: "sk-xxx..." },
+  systemPrompt: "You are a helpful customer support agent for Acme Corp...",
+  defaultScorers: ["answer_relevancy", "faithfulness", "bias"],
+});
+```
+
+</CodeGroup>
+
+## Configuration Options
+
+### Supported Providers
+
+| Provider    | Value       |
+| ----------- | ----------- |
+| OpenAI      | `openai`    |
+| Anthropic   | `anthropic` |
+| AWS Bedrock | `bedrock`   |
+| LangChain   | `langchain` |
+| Custom      | `custom`    |
+
+### System Prompt
+
+Base instructions for your agent. Used during test execution and prompt optimization.
+
+### Default Scorers
+
+Automatic evaluation metrics for all test runs:
+
+```python
+agent = client.agents.create(
+    name="Support Agent",
+    provider="openai",
+    default_scorers=["answer_relevancy", "faithfulness", "bias"]
+)
+```
+
+### Custom Endpoints
+
+For custom agent invocation:
+
+```python
+agent = client.agents.create(
+    name="Custom Agent",
+    provider="custom",
+    invocation={
+        "url": "https://your-api.com/chat",
+        "headers": {"X-API-Key": "your-key"}
+    }
+)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Test Cases" icon="list-check" href="/core-concepts/test-cases">
+    Create test scenarios for your agent
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/agents/create">
+    Full API documentation
+  </Card>
+</CardGroup>

@@ -1,0 +1,150 @@
+---
+title: "Evaluations"
+description: "Scoring agent outputs with 29 built-in metrics"
+---
+
+# Evaluations
+
+**Evaluation** scores agent outputs using metrics. Playgent provides **29 built-in evaluation metrics** across Custom, RAG, Agentic, Multi-Turn, and Safety categories.
+
+## Available Metrics (29 Total)
+
+| Type           | Metric                      | Description                                                |
+| -------------- | --------------------------- | ---------------------------------------------------------- |
+| **Custom**     | `playval`                   | General-purpose LLM-as-judge with custom criteria          |
+| **RAG**        | `answer_relevancy`          | How relevant is the answer to the question?                |
+| **RAG**        | `faithfulness`              | Is the answer grounded in the provided context?            |
+| **RAG**        | `contextual_precision`      | Are relevant context chunks ranked higher?                 |
+| **RAG**        | `contextual_recall`         | Does the context contain all needed information?           |
+| **RAG**        | `contextual_relevancy`      | Is the retrieved context relevant to the query?            |
+| **Agentic**    | `task_completion`           | Did the agent complete the requested task?                 |
+| **Agentic**    | `tool_correctness`          | Were the right tools selected?                             |
+| **Agentic**    | `argument_correctness`      | Were tool arguments correct?                               |
+| **Agentic**    | `step_efficiency`           | Were unnecessary steps avoided?                            |
+| **Agentic**    | `plan_adherence`            | Did the agent follow its stated plan?                      |
+| **Agentic**    | `plan_quality`              | Was the plan logical and effective?                        |
+| **Multi-Turn** | `turn_relevancy`            | Is each response relevant to its turn?                     |
+| **Multi-Turn** | `role_adherence`            | Does agent maintain its role throughout?                   |
+| **Multi-Turn** | `knowledge_retention`       | Does agent remember earlier context?                       |
+| **Multi-Turn** | `conversation_completeness` | Was the conversation goal achieved?                        |
+| **Multi-Turn** | `goal_accuracy`             | How well did agent achieve the user's goal?                |
+| **Multi-Turn** | `tool_use`                  | Were tools used appropriately across turns?                |
+| **Multi-Turn** | `topic_adherence`           | Did agent stay on topic?                                   |
+| **Multi-Turn** | `turn_faithfulness`         | Is each turn grounded in provided context?                 |
+| **Multi-Turn** | `turn_contextual_precision` | Context precision per turn                                 |
+| **Multi-Turn** | `turn_contextual_recall`    | Context recall per turn                                    |
+| **Multi-Turn** | `turn_contextual_relevancy` | Context relevancy per turn                                 |
+| **Safety**     | `bias`                      | Detects biased or discriminatory content                   |
+| **Safety**     | `toxicity`                  | Detects harmful, offensive, or toxic language              |
+| **Safety**     | `non_advice`                | Ensures no professional advice (legal, medical, financial) |
+| **Safety**     | `misuse`                    | Detects potential misuse or harmful instructions           |
+| **Safety**     | `pii_leakage`               | Checks for personally identifiable information leaks       |
+| **Safety**     | `role_violation`            | Detects when agent breaks character or role boundaries     |
+
+### Metric Requirements
+
+| Type       | Required Parameters                    |
+| ---------- | -------------------------------------- |
+| Custom     | `input`, `output`, `expected_behavior` |
+| RAG        | `input`, `output`, `context`           |
+| Agentic    | `tools_called`, `expected_tools`       |
+| Multi-Turn | `conversation`                         |
+| Safety     | `output` only                          |
+
+## Quick Start
+
+<CodeGroup>
+
+```python Python
+# Run a test and evaluate
+run = client.runs.create(test_case_id="tc_xyz789")
+
+evaluation = client.evaluate(
+    run_id=run.id,
+    scorers=["answer_relevancy", "faithfulness", "bias"]
+)
+
+print(f"Overall pass: {evaluation.overall_pass}")
+for scorer, result in evaluation.results.items():
+    print(f"{scorer}: {result.score:.2f}")
+```
+
+```typescript TypeScript
+const run = await client.runs.create({ testCaseId: "tc_xyz789" });
+
+const evaluation = await client.evaluate({
+  runId: run.id,
+  scorers: ["answer_relevancy", "faithfulness", "bias"],
+});
+```
+
+</CodeGroup>
+
+## Common Use Cases
+
+### Ad-hoc Evaluation
+
+Evaluate without running a test:
+
+```python
+evaluation = client.evaluate(
+    input="What is your refund policy?",
+    output="Returns within 30 days for full refund.",
+    context=["Policy doc..."],
+    scorers=["answer_relevancy", "faithfulness"]
+)
+```
+
+### Batch Evaluation
+
+Evaluate multiple runs:
+
+```python
+batch = client.evaluate_batch(
+    run_ids=["run_001", "run_002", "run_003"],
+    scorers=["answer_relevancy", "faithfulness"]
+)
+```
+
+### Custom Thresholds
+
+Override default 0.7 threshold:
+
+```python
+evaluation = client.evaluate(
+    run_id=run.id,
+    scorers=["faithfulness"],
+    thresholds={"faithfulness": 0.9}
+)
+```
+
+### Automatic Evaluation
+
+Set default scorers on agent:
+
+```python
+agent = client.agents.create(
+    name="Support Agent",
+    default_scorers=["answer_relevancy", "bias", "toxicity"]
+)
+# All runs auto-evaluated with these metrics
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/evaluation/evaluate"
+  >
+    Full evaluation API with all 29 metrics
+  </Card>
+  <Card
+    title="Custom Scorers"
+    icon="wand-magic-sparkles"
+    href="/api-reference/evaluation/create-custom-scorer"
+  >
+    Create domain-specific metrics
+  </Card>
+</CardGroup>

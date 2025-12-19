@@ -24,6 +24,16 @@
           {
             "group": "Getting Started",
             "pages": ["index", "quickstart"]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "core-concepts/overview",
+              "core-concepts/agents",
+              "core-concepts/test-cases",
+              "core-concepts/test-runs",
+              "core-concepts/evaluations"
+            ]
           }
         ]
       },

@@ -1,0 +1,101 @@
+---
+title: "Test Runs"
+description: "Executing tests and capturing results"
+---
+
+# Test Runs
+
+A **Test Run** executes a test case and captures the agent's output, performance metrics (latency, tokens, cost), and execution trace.
+
+## Quick Start
+
+<CodeGroup>
+
+```python Python
+run = client.runs.create(test_case_id="tc_xyz789")
+
+print(f"Run ID: {run.id}")
+print(f"Success: {run.success}")
+print(f"Output: {run.output}")
+```
+
+```typescript TypeScript
+const run = await client.runs.create({ testCaseId: "tc_xyz789" });
+
+console.log(`Run ID: ${run.id}`);
+console.log(`Success: ${run.success}`);
+console.log(`Output: ${run.output}`);
+```
+
+</CodeGroup>
+
+## Run Results
+
+Each run returns:
+
+- `success` - Whether test passed
+- `output` - Agent's response
+- `metrics` - Latency, tokens, cost
+- `trace_id` - Execution trace link
+
+```python
+run = client.runs.create(test_case_id="tc_xyz789")
+print(f"Success: {run.success}")
+print(f"Latency: {run.metrics.latency_ms}ms")
+print(f"Cost: ${run.metrics.cost_usd:.4f}")
+```
+
+## Running Multiple Tests
+
+### By IDs or Tags
+
+```python
+# Multiple test cases
+run = client.runs.create(test_case_ids=["tc_001", "tc_002", "tc_003"])
+
+# By tags
+run = client.runs.create(tags=["refunds"])
+```
+
+### Async Mode
+
+For long-running tests:
+
+```python
+run = client.runs.create(test_case_id="tc_xyz789", async_mode=True)
+# Check status later
+run_result = client.runs.get(run.id)
+```
+
+### Compare Agent Versions
+
+```python
+run_v1 = client.runs.create(test_case_id="tc_xyz789")
+run_v2 = client.runs.create(test_case_id="tc_xyz789", agent_id="agent_v2")
+```
+
+## Next Steps
+
+Evaluate runs with metrics:
+
+```python
+run = client.runs.create(test_case_id="tc_xyz789")
+
+evaluation = client.evaluate(
+    run_id=run.id,
+    scorers=["answer_relevancy", "faithfulness", "bias"]
+)
+```
+
+<CardGroup cols={2}>
+  <Card
+    title="Evaluations"
+    icon="chart-simple"
+    href="/core-concepts/evaluations"
+  >
+    Score runs with 29 built-in metrics
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/runs/create">
+    Full API documentation
+  </Card>
+</CardGroup>

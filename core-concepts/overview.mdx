@@ -1,0 +1,76 @@
+---
+title: "Overview"
+description: "Understanding Playgent's core concepts and data model"
+---
+
+# Core Concepts
+
+Playgent uses a simple pipeline for testing and evaluating AI agents:
+
+```
+Agent → Test Case → Test Run → Evaluation
+```
+
+<CardGroup cols={2}>
+  <Card title="Agent" icon="robot" href="/core-concepts/agents">
+    Your AI system configuration including provider, credentials, and system
+    prompt.
+  </Card>
+  <Card title="Test Case" icon="list-check" href="/core-concepts/test-cases">
+    Input scenarios with expected behaviors, context, and ground truth.
+  </Card>
+  <Card title="Test Run" icon="play" href="/core-concepts/test-runs">
+    Execution of test cases with captured outputs, metrics, and traces.
+  </Card>
+  <Card
+    title="Evaluation"
+    icon="chart-simple"
+    href="/core-concepts/evaluations"
+  >
+    Scoring runs with 29 built-in metrics (RAG, safety, agentic, multi-turn).
+  </Card>
+</CardGroup>
+
+## How They Connect
+
+1. **Agent** - Register your AI system with Playgent
+2. **Test Case** - Define scenarios to test against that agent
+3. **Test Run** - Execute test cases and capture results
+4. **Evaluation** - Score the run's output with chosen metrics
+
+## Quick Example
+
+```python
+from playgent import Playgent
+
+client = Playgent(api_key="your-api-key")
+
+# 1. Create agent
+agent = client.agents.create(
+    name="Support Agent",
+    provider="openai",
+    system_prompt="You are a helpful support agent..."
+)
+
+# 2. Create test case
+test_case = client.test_cases.create(
+    name="Refund Request",
+    agent_id=agent.id,
+    turns=[{
+        "input": {"text": "I want a refund"},
+        "expected_behavior": "Ask for order details",
+        "context": ["Refunds allowed within 30 days"]
+    }]
+)
+
+# 3. Run test
+run = client.runs.create(test_case_id=test_case.id)
+print(f"Run passed: {run.success}")
+
+# 4. Evaluate
+evaluation = client.evaluate(
+    run_id=run.id,
+    scorers=["answer_relevancy", "faithfulness", "bias"]
+)
+print(f"Evaluation passed: {evaluation.overall_pass}")
+```

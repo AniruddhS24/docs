@@ -1,0 +1,143 @@
+---
+title: "Test Cases"
+description: "Creating and managing test scenarios"
+---
+
+# Test Cases
+
+A **Test Case** defines a test scenario for your agent with input, expected behavior, and optional context.
+
+## Quick Start
+
+<CodeGroup>
+
+```python Python
+test_case = client.test_cases.create(
+    name="Refund Request - Valid Order",
+    agent_id=agent.id,
+    turns=[{
+        "input": {"text": "I want a refund for order #1234"},
+        "expected_behavior": "Agent should verify order and explain refund process",
+        "context": ["Order #1234: $99.99, delivered Dec 1, 2024, Status: Delivered"],
+        "ground_truth": "Order #1234 is eligible for refund within 30-day window"
+    }],
+    tags=["refunds", "customer-support", "happy-path"]
+)
+```
+
+```typescript TypeScript
+const testCase = await client.testCases.create({
+  name: "Refund Request - Valid Order",
+  agentId: agent.id,
+  turns: [
+    {
+      input: { text: "I want a refund for order #1234" },
+      expectedBehavior: "Agent should verify order and explain refund process",
+      context: [
+        "Order #1234: $99.99, delivered Dec 1, 2024, Status: Delivered",
+      ],
+      groundTruth: "Order #1234 is eligible for refund within 30-day window",
+    },
+  ],
+  tags: ["refunds", "customer-support", "happy-path"],
+});
+```
+
+</CodeGroup>
+
+## Test Types
+
+### Single-Turn
+
+One question, one response:
+
+```python
+test_case = client.test_cases.create(
+    name="Simple Question",
+    agent_id=agent.id,
+    turns=[{
+        "input": {"text": "What are your store hours?"},
+        "expected_behavior": "Provide store hours"
+    }]
+)
+```
+
+### Multi-Turn
+
+Full conversation with multiple exchanges:
+
+```python
+test_case = client.test_cases.create(
+    name="Refund Flow",
+    agent_id=agent.id,
+    turns=[
+        {"input": {"text": "I want a refund"}, "expected_behavior": "Ask for order number"},
+        {"input": {"text": "Order #1234"}, "expected_behavior": "Verify and process"}
+    ]
+)
+```
+
+## Additional Options
+
+### Context for RAG
+
+Add retrieved documents for RAG evaluation:
+
+```python
+turns=[{
+    "input": {"text": "Can I return opened items?"},
+    "context": ["Policy: Unopened items returnable within 30 days..."]
+}]
+```
+
+### Ground Truth
+
+Specify factual answers for accuracy checks:
+
+```python
+turns=[{
+    "input": {"text": "What is the capital of France?"},
+    "ground_truth": "Paris"
+}]
+```
+
+### Tags
+
+Organize and filter tests:
+
+```python
+test_case = client.test_cases.create(
+    name="Edge Case",
+    tags=["edge-cases", "refunds"]
+)
+
+# Run all tests with tag
+run = client.runs.create(tags=["refunds"])
+```
+
+### Auto-Generate
+
+Generate tests from documents:
+
+```python
+generated = client.test_cases.generate(
+    agent_id=agent.id,
+    documents=[{"content": "Policy doc...", "name": "policy.md"}],
+    generation_config={"num_test_cases": 10}
+)
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Test Runs" icon="play" href="/core-concepts/test-runs">
+    Execute your test cases
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/test-cases/create"
+  >
+    Full API documentation
+  </Card>
+</CardGroup>
